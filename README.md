@@ -1,118 +1,146 @@
-# Papaya Leaf Doctor
+# PlantSense AI 🌱
 
-A Flask web app where farmers upload a papaya leaf photo and get an instant disease
-diagnosis plus treatment instructions, powered by your trained Keras model.
+**PlantSense AI** is an AI-powered plant disease detection web application that helps users identify crop diseases from leaf images.
 
-Detects: Anthracnose of Papaya, Healthy Leaf, Mealybug Infestation, Papaya Black Spot,
-Papaya Mosaic Virus (PMV), Papaya Ring Spot Virus (PRSV).
+Users can upload a plant leaf image and receive an AI-based disease diagnosis along with information about the disease, prevention methods, and recommended treatment guidance.
 
-## Project structure
+## ✨ Features
 
-```
-papaya-disease-app/
-├── app.py                  # Flask app: upload, predict, render result
-├── disease_info.py         # Class names + descriptions + treatment steps
+* 🌿 AI-powered plant disease detection
+* 📷 Upload leaf images for diagnosis
+* 🩺 Disease identification using a trained deep learning model
+* 💡 Disease information and prevention guidance
+* 💊 Treatment recommendations
+* 📱 Simple and responsive web interface
+* ⚡ Fast prediction through a Flask-based backend
+
+## 🛠️ Technologies Used
+
+* **Python**
+* **Flask**
+* **TensorFlow / Keras**
+* **HTML5**
+* **CSS3**
+* **JavaScript**
+* **NumPy**
+* **Pillow**
+
+## 📂 Project Structure
+
+```text
+PlantSense-AI/
+├── app.py
+├── disease_info.py
 ├── requirements.txt
-├── Procfile                 # For Render/Heroku-style start command
-├── render.yaml               # Render "one click" blueprint config
+├── Procfile
+├── render.yaml
 ├── model/
-│   └── papaya_model.h5     # <-- YOU add this (see step 1 below)
+│   └── trained_model.h5
 ├── notebook/
-│   └── export_from_kaggle.py  # Instructions for exporting your Kaggle model
+│   └── export_from_kaggle.py
 ├── static/
-│   ├── css/style.css
-│   └── uploads/            # Uploaded images are temporarily saved here
+│   ├── css/
+│   │   └── style.css
+│   ├── js/
+│   │   └── app.js
+│   └── images/
+│       └── logo.svg
 └── templates/
     ├── base.html
-    ├── index.html           # Upload page
-    └── result.html          # Diagnosis result page
+    ├── index.html
+    └── result.html
 ```
 
-## Step 1 — Get your trained model out of Kaggle
+## 🚀 Run Locally
 
-At the end of your Kaggle training notebook, add:
-
-```python
-model.save("papaya_model.h5")
-```
-
-Then click **Save Version** on the notebook. Once it finishes, open that notebook
-version's **Output** tab and download `papaya_model.h5`.
-
-Also confirm two things from your notebook, since the web app needs to match them exactly:
-
-1. **Class order** — print it and compare against `disease_info.py`'s `CLASS_NAMES` list:
-   ```python
-   print(train_ds.class_names)                 # image_dataset_from_directory
-   # or
-   print(train_generator.class_indices)          # ImageDataGenerator
-   ```
-   If the order differs, edit `CLASS_NAMES` in `disease_info.py` to match.
-
-2. **Input image size** — the size you resized images to during training (e.g. 224x224,
-   150x150). Update `IMG_SIZE` in `app.py` if it isn't 224x224.
-
-Then place the downloaded file at `model/papaya_model.h5` in this project.
-
-> If your model is PyTorch (`.pt`) or TFLite (`.tflite`) instead of Keras, say so and
-> the loading code in `app.py` can be swapped accordingly — the rest of the app
-> (routes, templates, disease info) stays the same.
-
-## Step 2 — Run it locally
+### 1. Clone the repository
 
 ```bash
-cd papaya-disease-app
+git clone https://github.com/Saihan-DIU/PlantSense-AI.git
+cd PlantSense-AI
+```
+
+### 2. Create a virtual environment
+
+```bash
 python -m venv venv
-venv\Scripts\activate          # Windows
+```
+
+### 3. Activate the virtual environment
+
+**Windows:**
+
+```bash
+venv\Scripts\activate
+```
+
+**Linux/macOS:**
+
+```bash
+source venv/bin/activate
+```
+
+### 4. Install dependencies
+
+```bash
 pip install -r requirements.txt
+```
+
+### 5. Add the trained model
+
+Place the trained Keras model in the `model/` directory using the filename expected by `app.py`.
+
+> **Important:** The model's class order and input image size must match the configuration used during training.
+
+### 6. Run the application
+
+```bash
 python app.py
 ```
 
-Open http://localhost:5000, upload a leaf photo, and confirm the prediction and
-instructions look right.
+Then open:
 
-## Step 3 — Put it on GitHub
-
-```bash
-git init
-git add .
-git commit -m "Papaya leaf disease detection web app"
-git branch -M main
-git remote add origin https://github.com/<your-username>/papaya-leaf-doctor.git
-git push -u origin main
+```text
+http://127.0.0.1:5000
 ```
 
-Your model file can be large — GitHub's normal file limit is 100MB. If `papaya_model.h5`
-is under that, a normal push is fine. If it's larger, use
-[Git LFS](https://git-lfs.com/) (`git lfs install && git lfs track "*.h5"`) before committing it.
+## 🤖 Model
 
-## Step 4 — Deploy on Render (free)
+PlantSense AI uses a deep learning image-classification model trained to identify plant diseases from leaf images.
 
-1. Go to https://render.com and sign in with GitHub.
-2. Click **New +** → **Web Service**, and pick your `papaya-leaf-doctor` repo.
-3. Render should auto-detect `render.yaml`. If asked to confirm settings manually instead:
-   - **Build Command:** `pip install -r requirements.txt`
-   - **Start Command:** `gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120`
-   - **Instance Type:** Free
-4. Click **Create Web Service**. The first build takes a few minutes (TensorFlow is a
-   large dependency).
-5. Once deployed, Render gives you a public URL like
-   `https://papaya-leaf-doctor.onrender.com` — that's your live site.
+The prediction pipeline performs:
 
-### Notes about the free tier
+```text
+Leaf Image
+    ↓
+Image Preprocessing
+    ↓
+Deep Learning Model
+    ↓
+Disease Prediction
+    ↓
+Disease Information
+    ↓
+Prevention & Treatment Guidance
+```
 
-- Free Render services **spin down after 15 minutes of inactivity** and take ~30-60s to
-  wake back up on the next request — the first prediction after idle time will be slow.
-- Free tier has 512MB RAM. `requirements.txt` uses plain `tensorflow` (not `tensorflow-cpu`,
-  which has no Windows wheel and breaks local installs on Windows) — on Linux/Render it still
-  installs CPU-only by default. If you hit memory errors on Render, consider converting your
-  model to **TFLite** for a much lighter footprint — ask and this can be wired in.
-- Uploaded images are saved to local disk (`static/uploads/`), which is **not persistent**
-  on Render's free tier (it resets on redeploy/restart) — fine for this use case since we
-  don't need to keep old uploads.
+## 👨‍💻 Developer 
 
-## Customizing disease info
+* **Md Saihan Alam**
 
-Edit `disease_info.py` — each class has a `description` and a list of `instructions`
-(treatment steps) shown on the result page. Feel free to refine the wording or add
-region-specific advice.
+## 📩 Contact
+
+**Email:** [saihan.alam.bd@gmail.com](mailto:saihan.alam.bd@gmail.com)
+
+
+## 🎯 Project Goal
+
+The goal of PlantSense AI is to make plant disease identification more accessible by providing a simple AI-based tool that can assist farmers, students, researchers, and other users in identifying diseases from plant leaf images.
+
+## ⚠️ Disclaimer
+
+PlantSense AI provides AI-generated disease predictions and general agricultural information. The results should not be considered a substitute for professional agricultural advice or laboratory diagnosis.
+
+## 📄 License
+
+This project is intended for educational and research purposes.

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}PlantSense AI{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', filename='images/logo.svg') }}" type="image/svg+xml" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <a class="brand" href="{{ url_for('index') }}">
+        <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="PlantSense AI logo" class="brand-logo" />
+        PlantSense AI
+      </a>
+
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+
+      <div class="nav-menu" id="navMenu">
+        <a href="{{ url_for('index') }}#how-it-works">How It Works</a>
+        <a href="{{ url_for('index') }}#features">Features</a>
+        <a href="{{ url_for('index') }}#upload">Diagnose Now</a>
+        <a href="{{ url_for('index') }}#about">About Us</a>
+
+        <div class="nav-dropdown" id="cropDropdown">
+          <button class="dropdown-toggle" id="cropDropdownToggle" aria-haspopup="true" aria-expanded="false">
+            🌱 Select Crop <span class="caret">▾</span>
+          </button>
+          <div class="dropdown-menu" id="cropDropdownMenu">
+            <a href="{{ url_for('index') }}" class="dropdown-item active">
+              <span>🍈 Papaya Leaf Disease</span>
+              <span class="status-badge status-live">Live</span>
+            </a>
+            <button type="button" class="dropdown-item disabled" data-crop="guava">
+              <span>🍃 Guava Leaf Disease</span>
+              <span class="status-badge status-soon">Coming Soon</span>
+            </button>
+            <button type="button" class="dropdown-item disabled" data-crop="tomato">
+              <span>🍅 Tomato Leaf Disease</span>
+              <span class="status-badge status-soon">Coming Soon</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div id="toast" class="toast"></div>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="container">
+        <div class="flash">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-col footer-about">
+        <p class="footer-brand">
+          <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="PlantSense AI logo" class="footer-logo" />
+          PlantSense AI
+        </p>
+        <p class="footer-desc">
+          An AI-powered plant leaf disease detection platform developed as an academic
+          research project, applying computer vision to real-world smart agriculture problems.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-heading">Navigation</h4>
+        <a href="{{ url_for('index') }}#how-it-works">How It Works</a>
+        <a href="{{ url_for('index') }}#features">Features</a>
+        <a href="{{ url_for('index') }}#upload">Diagnose Now</a>
+        <a href="{{ url_for('index') }}#about">About Us</a>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-heading">Institution</h4>
+        <p class="footer-text">Department of Computer Science &amp; Engineering</p>
+        <p class="footer-text">Dhaka International University</p>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-heading">Disclaimer</h4>
+        <p class="footer-text">
+          Always consult a qualified local agricultural expert to confirm a diagnosis
+          before large-scale treatment.
+        </p>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; {{ current_year }} PlantSense AI &mdash; Dhaka International University. All rights reserved.</p>
+      <p class="footer-tagline">Built for academic research in AI-driven smart agriculture.</p>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

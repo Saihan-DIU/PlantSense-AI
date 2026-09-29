@@ -1,0 +1,38 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PlantSense AI logo">
+  <defs>
+    <linearGradient id="badgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6fae44"/>
+      <stop offset="100%" stop-color="#1f3818"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="2" y="2" width="96" height="96" rx="22" fill="url(#badgeGrad)"/>
+
+  <path
+    d="M50 16
+       C70 20 80 38 73 56
+       C68 69 58 75 50 85
+       C42 75 32 69 27 56
+       C20 38 30 20 50 16
+       Z"
+    fill="white"
+  />
+
+  <path
+    d="M50 26 L50 78"
+    stroke="#3f7d29"
+    stroke-width="2.6"
+    stroke-linecap="round"
+    fill="none"
+  />
+  <path
+    d="M50 40 L40 50 M50 51 L42 59 M50 62 L44 69"
+    stroke="#3f7d29"
+    stroke-width="2"
+    stroke-linecap="round"
+    fill="none"
+  />
+
+  <circle cx="71" cy="71" r="11.5" fill="url(#badgeGrad)" stroke="white" stroke-width="4"/>
+  <line x1="79" y1="79" x2="87" y2="87" stroke="white" stroke-width="4.5" stroke-linecap="round"/>
+</svg>

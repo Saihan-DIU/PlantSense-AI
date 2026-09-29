@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Diagnosis Result — Papaya Leaf Doctor{% endblock %}
+
+{% block content %}
+<section class="result">
+  <div class="result-grid">
+    <div class="result-image">
+      <img src="{{ image_url }}" alt="Uploaded leaf" />
+    </div>
+
+    <div class="result-details">
+      <span class="badge {{ 'badge-healthy' if is_healthy else 'badge-disease' }}">
+        {{ 'Healthy' if is_healthy else 'Disease Detected' }}
+      </span>
+      <h1>{{ predicted_class }}</h1>
+      <p class="confidence">Confidence: <strong>{{ confidence }}%</strong></p>
+      <p class="description">{{ description }}</p>
+
+      {% if instructions %}
+      <h2>Recommended Actions</h2>
+      <ul class="instructions">
+        {% for step in instructions %}
+        <li>{{ step }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      <h2>Other possibilities</h2>
+      <ul class="ranked-list">
+        {% for name, prob in ranked %}
+        <li><span>{{ name }}</span><span>{{ prob }}%</span></li>
+        {% endfor %}
+      </ul>
+
+      <a href="{{ url_for('index') }}" class="btn-primary">Analyze Another Leaf</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

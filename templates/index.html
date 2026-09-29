@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Papaya Leaf Doctor — Upload a Leaf Photo{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-glow hero-glow-1" aria-hidden="true"></div>
+  <div class="hero-glow hero-glow-2" aria-hidden="true"></div>
+  <div class="container hero-inner">
+    <div class="hero-text">
+      <span class="hero-eyebrow">AI Plant Health Assistant</span>
+      <h1>Detect papaya leaf diseases instantly</h1>
+      <p>Upload a clear photo of a papaya leaf and get an instant AI diagnosis with
+         step-by-step treatment instructions — built for farmers, free to use.</p>
+      <div class="hero-actions">
+        <a href="#upload" class="btn-primary">Diagnose a Leaf</a>
+        <a href="#how-it-works" class="btn-secondary">See How It Works</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <section class="upload-card" id="upload">
+    <form action="{{ url_for('predict') }}" method="post" enctype="multipart/form-data" id="upload-form">
+      <label for="leaf_image" class="dropzone" id="dropzone">
+        <input type="file" name="leaf_image" id="leaf_image" accept="image/png, image/jpeg, image/webp" required />
+        <div id="dropzone-text">
+          <span class="dropzone-icon">📷</span>
+          <p><strong>Click to upload</strong> or drag and drop a leaf photo</p>
+          <p class="hint">PNG or JPG, up to 8MB</p>
+        </div>
+        <img id="preview" src="" alt="Preview" style="display:none;" />
+      </label>
+      <button type="submit" class="btn-primary">Analyze Leaf</button>
+    </form>
+  </section>
+
+  <section class="tips">
+    <h2>Tips for a good photo</h2>
+    <ul>
+      <li>Take the photo in natural daylight, avoiding heavy shadows.</li>
+      <li>Fill the frame with a single leaf, showing the affected area clearly.</li>
+      <li>Avoid blurry or very dark/bright images.</li>
+    </ul>
+  </section>
+
+  <section class="how-it-works" id="how-it-works">
+    <h2 class="section-title">How It Works</h2>
+    <div class="steps-grid">
+      <div class="step-card reveal">
+        <div class="step-number">1</div>
+        <h3>Upload a Photo</h3>
+        <p>Take a clear photo of the papaya leaf and upload it above.</p>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-number">2</div>
+        <h3>AI Analyzes It</h3>
+        <p>Our trained model scans the leaf for signs of disease in seconds.</p>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-number">3</div>
+        <h3>Get Your Diagnosis</h3>
+        <p>See the detected condition, confidence score, and treatment steps.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="features" id="features">
+    <h2 class="section-title">Why Farmers Use Papaya Leaf Doctor</h2>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <span class="feature-icon">⚡</span>
+        <h3>Instant Results</h3>
+        <p>Get a diagnosis in seconds — no waiting for an expert visit.</p>
+      </div>
+      <div class="feature-card reveal">
+        <span class="feature-icon">🎯</span>
+        <h3>Trained on Real Leaf Images</h3>
+        <p>Recognizes 6 common papaya conditions, including healthy leaves.</p>
+      </div>
+      <div class="feature-card reveal">
+        <span class="feature-icon">📋</span>
+        <h3>Actionable Treatment Steps</h3>
+        <p>Every result comes with clear, practical instructions you can act on today.</p>
+      </div>
+      <div class="feature-card reveal">
+        <span class="feature-icon">📱</span>
+        <h3>Works on Any Device</h3>
+        <p>Use it from a phone in the field or a computer at home — no app install needed.</p>
+      </div>
+      <div class="feature-card reveal">
+        <span class="feature-icon">🆓</span>
+        <h3>Free to Use</h3>
+        <p>No signup, no subscription — just upload and get help.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="about" id="about">
+    <span class="about-kicker reveal">Who We Are</span>
+    <h2 class="section-title">About Us</h2>
+
+    <div class="about-mission reveal">
+      <span class="quote-mark" aria-hidden="true">&ldquo;</span>
+      <p>
+        We are a team of Computer Science &amp; Engineering students from Dhaka International
+        University with an interest in Artificial Intelligence, Machine Learning, Computer
+        Vision, and Smart Agriculture.
+      </p>
+      <p>
+        We built this platform to explore how modern AI technologies can be applied to
+        real-world agricultural problems. Our goal is to make plant disease detection simple,
+        accessible, and easy to understand through image-based analysis.
+      </p>
+    </div>
+
+    <div class="research-tags reveal">
+      <span class="research-tag">Artificial Intelligence</span>
+      <span class="research-tag">Machine Learning</span>
+      <span class="research-tag">Computer Vision</span>
+      <span class="research-tag">Smart Agriculture</span>
+    </div>
+
+    <h3 class="about-subtitle reveal">Meet the Team</h3>
+
+    <div class="team-grid">
+      <div class="team-card reveal">
+        <div class="team-photo-wrap">
+          <img src="{{ url_for('static', filename='images/team/saihan.png') }}" alt="Saihan" class="team-photo" />
+        </div>
+        <h4>Saihan</h4>
+        <p class="team-role">Researcher &amp; Developer</p>
+        <p class="team-affiliation">Dept. of CSE, Dhaka International University</p>
+      </div>
+      <div class="team-card reveal">
+        <div class="team-photo-wrap">
+          <img src="{{ url_for('static', filename='images/team/zuba.jpg') }}" alt="Zuba" class="team-photo" />
+        </div>
+        <h4>Zuba</h4>
+        <p class="team-role">Researcher &amp; Developer</p>
+        <p class="team-affiliation">Dept. of CSE, Dhaka International University</p>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

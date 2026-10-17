@@ -6,6 +6,3 @@ static/uploads/*
 !static/uploads/.gitkeep
 .env
 
-# Trained model checkpoints (>100 MB, exceed GitHub file limit)
-model/*.pth
-model/*.pt

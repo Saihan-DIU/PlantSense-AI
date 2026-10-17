@@ -32,6 +32,16 @@
   --warn-50: #fdf3e2;
 
   --forest: #13211a;          /* dark bands */
+  --forest-line: #13211a;
+  --footer-bg: #13211a;
+  --on-brand: #ffffff;        /* text on brand-filled buttons */
+  --danger-line: #f5cbc7;
+  --warn-line: #f4dcb2;
+  --nav-bg: rgba(247, 246, 242, 0.82);
+  --hover-tint: rgba(19, 33, 26, 0.05);
+  --grid-line: rgba(19, 33, 26, 0.05);
+  --glow: rgba(31, 107, 69, 0.12);
+  --overlay-bg: rgba(255, 255, 255, 0.92);
 
   /* Type */
   --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -57,6 +67,55 @@
 
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   --nav-h: 68px;
+}
+
+:root { color-scheme: light dark; }
+
+@media screen and (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1411;
+    --surface: #141d18;
+    --surface-2: #1a2520;
+    --ink: #e6eee8;
+    --ink-2: #bac8bf;
+    --muted: #8b9b91;
+    --line: #243129;
+    --line-strong: #34453b;
+
+    --brand: #4cc285;
+    --brand-600: #66d198;
+    --brand-700: #8fe0b2;
+    --brand-50: rgba(76, 194, 133, 0.12);
+    --brand-100: rgba(76, 194, 133, 0.28);
+    --on-brand: #08140d;
+
+    --accent-50: rgba(232, 116, 59, 0.14);
+
+    --danger: #f08a80;
+    --danger-50: rgba(240, 138, 128, 0.1);
+    --danger-line: rgba(240, 138, 128, 0.28);
+    --warn: #f0b660;
+    --warn-50: rgba(240, 182, 96, 0.1);
+    --warn-line: rgba(240, 182, 96, 0.28);
+
+    --forest: #15241c;
+    --forest-line: #24382c;
+    --footer-bg: #090e0b;
+
+    --nav-bg: rgba(13, 20, 17, 0.8);
+    --hover-tint: rgba(255, 255, 255, 0.06);
+    --grid-line: rgba(255, 255, 255, 0.045);
+    --glow: rgba(76, 194, 133, 0.1);
+    --overlay-bg: rgba(20, 29, 24, 0.9);
+
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 24px 48px -16px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Photos read better slightly dimmed against a dark page */
+  .team-card__photo, .result__image img { filter: brightness(0.94); }
 }
 
 /* ---------- 2. Base ---------- */
@@ -122,7 +181,7 @@ button { font: inherit; color: inherit; }
   z-index: 200;
   padding: 10px 16px;
   background: var(--ink);
-  color: #fff;
+  color: var(--bg);
   border-radius: var(--r-sm);
   font-weight: 600;
 }
@@ -216,7 +275,7 @@ button { font: inherit; color: inherit; }
 
 .btn--primary {
   --btn-bg: var(--brand);
-  --btn-fg: #fff;
+  --btn-fg: var(--on-brand);
   --btn-bd: var(--brand);
   box-shadow: 0 1px 0 rgba(255,255,255,.15) inset, 0 1px 2px rgba(19,33,26,.2);
 }
@@ -237,8 +296,8 @@ button { font: inherit; color: inherit; }
 .spinner {
   display: none;
   width: 18px; height: 18px;
-  border: 2px solid rgba(255,255,255,.35);
-  border-top-color: #fff;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
   border-radius: 50%;
   animation: spin .7s linear infinite;
 }
@@ -302,8 +361,8 @@ button { font: inherit; color: inherit; }
 }
 .alert .icon { margin-top: 1px; }
 .alert p + p { margin-top: 4px; }
-.alert--error { color: var(--danger); background: var(--danger-50); border-color: #f5cbc7; margin-top: 24px; }
-.alert--warn { color: var(--warn); background: var(--warn-50); border-color: #f4dcb2; }
+.alert--error { color: var(--danger); background: var(--danger-50); border-color: var(--danger-line); margin-top: 24px; }
+.alert--warn { color: var(--warn); background: var(--warn-50); border-color: var(--warn-line); }
 
 /* Toast */
 .toast {
@@ -312,7 +371,7 @@ button { font: inherit; color: inherit; }
   bottom: 24px;
   z-index: 300;
   padding: 12px 18px;
-  color: #fff;
+  color: var(--bg);
   background: var(--ink);
   border-radius: var(--r);
   box-shadow: var(--shadow-lg);
@@ -332,7 +391,7 @@ button { font: inherit; color: inherit; }
   top: 0;
   z-index: 100;
   height: var(--nav-h);
-  background: rgba(247, 246, 242, 0.82);
+  background: var(--nav-bg);
   -webkit-backdrop-filter: saturate(180%) blur(12px);
   backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid transparent;
@@ -384,7 +443,7 @@ button { font: inherit; color: inherit; }
   border-radius: var(--r-sm);
   transition: color .15s, background-color .15s;
 }
-.nav-menu > a:not(.btn):hover { color: var(--ink); background: rgba(19,33,26,.05); }
+.nav-menu > a:not(.btn):hover { color: var(--ink); background: var(--hover-tint); }
 .nav-cta { margin-left: 8px; }
 
 /* Crop switcher */
@@ -487,8 +546,8 @@ button { font: inherit; color: inherit; }
   inset: 0;
   z-index: -1;
   background-image:
-    linear-gradient(to right, rgba(19,33,26,.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(19,33,26,.05) 1px, transparent 1px);
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
   background-size: 48px 48px;
   -webkit-mask-image: radial-gradient(ellipse 80% 70% at 30% 20%, #000 30%, transparent 75%);
   mask-image: radial-gradient(ellipse 80% 70% at 30% 20%, #000 30%, transparent 75%);
@@ -501,7 +560,7 @@ button { font: inherit; color: inherit; }
   top: -20%;
   width: 60%;
   aspect-ratio: 1;
-  background: radial-gradient(closest-side, rgba(31,107,69,.12), transparent);
+  background: radial-gradient(closest-side, var(--glow), transparent);
   pointer-events: none;
 }
 
@@ -635,7 +694,7 @@ button { font: inherit; color: inherit; }
   padding: 8px 12px;
   font-size: var(--fs-xs);
   color: var(--ink);
-  background: rgba(255,255,255,.92);
+  background: var(--overlay-bg);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   border-radius: 10px;
@@ -722,7 +781,7 @@ button { font: inherit; color: inherit; }
   background:
     radial-gradient(120% 120% at 100% 0%, rgba(232,116,59,.18), transparent 50%),
     var(--forest);
-  border-color: var(--forest);
+  border-color: var(--forest-line);
 }
 .bento__card--feature h3 { color: #fff; font-size: 1.5rem; }
 .bento__card--feature p { color: #b9c8bf; max-width: 460px; font-size: 1rem; }
@@ -818,6 +877,7 @@ button { font: inherit; color: inherit; }
     radial-gradient(80% 140% at 0% 0%, rgba(31,107,69,.55), transparent 60%),
     radial-gradient(60% 120% at 100% 100%, rgba(232,116,59,.25), transparent 60%),
     var(--forest);
+  border: 1px solid var(--forest-line);
   border-radius: 24px;
 }
 .cta-band h2 { color: #fff; font-size: var(--fs-xl); font-weight: 700; }
@@ -985,7 +1045,7 @@ button { font: inherit; color: inherit; }
 
 .site-footer {
   color: #a9b8af;
-  background: var(--forest);
+  background: var(--footer-bg);
   font-size: var(--fs-sm);
 }
 .footer-grid {

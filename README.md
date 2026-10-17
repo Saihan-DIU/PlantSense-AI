@@ -18,11 +18,12 @@ Users can upload a plant leaf image and receive an AI-based disease diagnosis al
 
 * **Python**
 * **Flask**
-* **TensorFlow / Keras**
+* **PyTorch**
+* **timm** (PyTorch Image Models — MaxViT-Tiny and ConvNeXtV2 backbones)
+* **OpenCV** (background removal for the guava leaf pipeline)
 * **HTML5**
 * **CSS3**
 * **JavaScript**
-* **NumPy**
 * **Pillow**
 
 ## 📂 Project Structure
@@ -30,12 +31,15 @@ Users can upload a plant leaf image and receive an AI-based disease diagnosis al
 ```text
 PlantSense-AI/
 ├── app.py
-├── disease_info.py
+├── disease_info.py              # papaya disease descriptions & treatment steps
+├── guava_model.py                # ConvNeXtV2-SSA architecture + preprocessing
+├── guava_disease_info.py        # guava disease descriptions & treatment steps
 ├── requirements.txt
 ├── Procfile
 ├── render.yaml
 ├── model/
-│   └── trained_model.h5
+│   ├── MaxViT-Tiny_seed_42_best.pth      # papaya model
+│   └── convnextv2_ssa_Leaf_best.pt       # guava model
 ├── notebook/
 │   └── export_from_kaggle.py
 ├── static/
@@ -47,8 +51,10 @@ PlantSense-AI/
 │       └── logo.svg
 └── templates/
     ├── base.html
-    ├── index.html
-    └── result.html
+    ├── index.html                # papaya upload page
+    ├── result.html                # papaya diagnosis result
+    ├── guava_index.html          # guava upload page
+    └── guava_result.html         # guava diagnosis result
 ```
 
 ## 🚀 Run Locally
@@ -86,11 +92,19 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 5. Add the trained model
+### 5. Add the trained models
 
-Place the trained Keras model in the `model/` directory using the filename expected by `app.py`.
+Place both checkpoints in the `model/` directory:
+* `MaxViT-Tiny_seed_42_best.pth` (papaya — filename must match `MODEL_PATH` in `app.py`)
+* `convnextv2_ssa_Leaf_best.pt` (guava — filename must match `MODEL_PATH` in `guava_model.py`)
 
-> **Important:** The model's class order and input image size must match the configuration used during training.
+> **Important:** Each model's class order (`CLASS_NAMES` in `disease_info.py` / `guava_model.py`) must match the order used during training (alphabetical `ImageFolder` order, by default).
+
+> **Note:** Both checkpoints are ~120 MB each, exceeding GitHub's 100 MB single-file push limit. Track them with [Git LFS](https://git-lfs.com/) before committing:
+> ```bash
+> git lfs install
+> git lfs track "*.pth" "*.pt"
+> ```
 
 ### 6. Run the application
 
@@ -104,9 +118,15 @@ Then open:
 http://127.0.0.1:5000
 ```
 
-## 🤖 Model
+## 🤖 Models
 
-PlantSense AI uses a deep learning image-classification model trained to identify plant diseases from leaf images.
+PlantSense AI currently supports two crops, each with its own dedicated model:
+
+**Papaya** — **MaxViT-Tiny** (`maxvit_tiny_tf_224` from `timm`), a hybrid CNN/vision-transformer, fine-tuned to classify 6 papaya leaf conditions. **99.1% validation accuracy**. Input images are resized to 224×224 and normalized with standard ImageNet statistics before inference.
+
+**Guava** — **ConvNeXtV2-Tiny + Separable Self-Attention** (a custom architecture: a `timm` ConvNeXtV2 backbone with two lightweight, linear-complexity attention blocks applied to the final feature map before pooling), fine-tuned to classify 6 guava leaf conditions. **99.8% test accuracy**. Before inference, the leaf is segmented out from its background (the model was trained on background-masked images to prevent background shortcut-learning), then resized/center-cropped to 224×224 and normalized with ImageNet statistics.
+
+Tomato is shown in the crop selector as "Coming Soon."
 
 The prediction pipeline performs:
 

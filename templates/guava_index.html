@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon, upload_card, how_it_works with context %}
+{% block title %}Guava Leaf Disease Detection — PlantSense AI{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="container hero__inner">
+    <div class="hero__copy">
+      <span class="eyebrow eyebrow--pill">{{ icon('cpu', 14) }} AI plant health assistant</span>
+      <h1 class="hero__title">Detect guava leaf diseases <span class="text-accent">in seconds.</span></h1>
+      <p class="hero__lead">
+        Upload a clear photo of a guava leaf and get an instant AI diagnosis with
+        step-by-step treatment guidance &mdash; built for farmers, free to use.
+      </p>
+
+      <dl class="hero__stats">
+        <div><dt>Conditions</dt><dd>6</dd></div>
+        <div><dt>Analysis time</dt><dd>&lt;&nbsp;5s</dd></div>
+        <div><dt>Cost</dt><dd>Free</dd></div>
+      </dl>
+
+      <ul class="hero__trust">
+        <li>{{ icon('check', 16) }} No signup required</li>
+        <li>{{ icon('check', 16) }} Works on any phone</li>
+        <li>{{ icon('check', 16) }} Treatment steps included</li>
+      </ul>
+    </div>
+
+    {{ upload_card(url_for('guava_predict'), 'guava', [
+      ('sun', 'Natural daylight.', 'Avoid heavy shadows.'),
+      ('leaf', 'Plain background.', 'One leaf, plain surface.'),
+      ('image', 'Keep it sharp.', 'No blur or glare.')
+    ]) }}
+  </div>
+</section>
+
+{{ how_it_works('guava', 'A ConvNeXtV2 + attention model scans the leaf for visual signs of disease in seconds.') }}
+{% endblock %}

@@ -1,0 +1,186 @@
+{# Shared UI building blocks: inline icon set and the upload card. #}
+
+{% set ICONS = {
+  'upload': '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/>',
+  'sun': '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+  'leaf': '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
+  'focus': '<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/>',
+  'zap': '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>',
+  'target': '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  'clipboard': '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4M12 16h4M8 11h.01M8 16h.01"/>',
+  'phone': '<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>',
+  'unlock': '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
+  'shield': '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',
+  'check': '<path d="M20 6 9 17l-5-5"/>',
+  'chevron-down': '<path d="m6 9 6 6 6-6"/>',
+  'arrow-right': '<path d="M5 12h14M12 5l7 7-7 7"/>',
+  'arrow-left': '<path d="M19 12H5M12 19l-7-7 7-7"/>',
+  'alert': '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/>',
+  'info': '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+  'image': '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21"/>',
+  'menu': '<path d="M4 6h16M4 12h16M4 18h16"/>',
+  'close': '<path d="M18 6 6 18M6 6l12 12"/>',
+  'cpu': '<rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/>',
+  'refresh': '<path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/>',
+  'printer': '<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>'
+} %}
+
+{% macro icon(name, size=20, cls='') -%}
+<svg class="icon {{ cls }}" width="{{ size }}" height="{{ size }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">{{ ICONS[name]|safe }}</svg>
+{%- endmacro %}
+
+{% macro upload_card(action, crop, tips) -%}
+<div class="upload-card" id="upload">
+  <div class="upload-card__head">
+    <div>
+      <p class="upload-card__title">Analyze a {{ crop }} leaf</p>
+      <p class="upload-card__sub">PNG, JPG or WEBP &middot; up to 8&nbsp;MB</p>
+    </div>
+    <span class="pill pill--live"><span class="pill__dot"></span>Model online</span>
+  </div>
+
+  <form action="{{ action }}" method="post" enctype="multipart/form-data" id="upload-form" class="upload-form">
+    <label for="leaf_image" class="dropzone" id="dropzone">
+      <input type="file" name="leaf_image" id="leaf_image" accept="image/png, image/jpeg, image/webp" required class="visually-hidden" />
+      <span class="dropzone__empty" id="dropzone-text">
+        <span class="dropzone__icon">{{ icon('upload', 22) }}</span>
+        <span class="dropzone__lead"><strong>Click to upload</strong> or drag and drop</span>
+        <span class="dropzone__hint">A single, well-lit leaf works best</span>
+      </span>
+      <span class="dropzone__preview" id="dropzone-preview" hidden>
+        <img id="preview" src="" alt="Selected leaf preview" />
+        <span class="dropzone__meta">
+          <span class="dropzone__file">{{ icon('image', 16) }}<span id="file-name"></span></span>
+          <span class="dropzone__change">Change photo</span>
+        </span>
+      </span>
+    </label>
+
+    <p class="form-error" id="upload-error" role="alert" hidden></p>
+
+    <button type="submit" class="btn btn--primary btn--lg btn--block" id="submit-btn">
+      <span class="spinner" aria-hidden="true"></span>
+      <span class="btn__label">Analyze leaf</span>
+      {{ icon('arrow-right', 18, 'btn__arrow') }}
+    </button>
+  </form>
+
+  <ul class="upload-tips" aria-label="Photo tips">
+    {% for ico, title, text in tips %}
+    <li class="upload-tip">
+      <span class="upload-tip__icon">{{ icon(ico, 16) }}</span>
+      <span><strong>{{ title }}</strong> {{ text }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{%- endmacro %}
+
+{# Diagnosis page body. Reads predicted_class, confidence, description,
+   instructions, is_healthy, ranked and image_url from the render context. #}
+{% macro result_view(back_url, crop) -%}
+{% set label = predicted_class|replace('_', ' ') %}
+{% set tone = 'healthy' if is_healthy else 'disease' %}
+<section class="result">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="{{ back_url }}">{{ icon('arrow-left', 16) }} {{ crop|capitalize }} diagnosis</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">Result</span>
+    </nav>
+
+    <div class="result__grid">
+      <aside class="result__media">
+        <figure class="result__image">
+          <img src="{{ image_url }}" alt="Uploaded {{ crop }} leaf" />
+          <figcaption>Uploaded photo</figcaption>
+        </figure>
+        <div class="result__actions">
+          <a href="{{ back_url }}#upload" class="btn btn--primary btn--block">{{ icon('refresh', 18) }} Analyze another leaf</a>
+          <button type="button" class="btn btn--ghost btn--block" onclick="window.print()">{{ icon('printer', 18) }} Print report</button>
+        </div>
+      </aside>
+
+      <div class="result__body">
+        <article class="card verdict verdict--{{ tone }}">
+          <div class="verdict__main">
+            <span class="status status--{{ tone }}">
+              {{ icon('shield' if is_healthy else 'alert', 16) }}
+              {{ 'Healthy leaf' if is_healthy else 'Disease detected' }}
+            </span>
+            <h1 class="verdict__title">{{ label }}</h1>
+            {% if description %}<p class="verdict__desc">{{ description }}</p>{% endif %}
+          </div>
+          <div class="gauge" style="--p: {{ confidence }};" role="img" aria-label="Confidence {{ confidence }} percent">
+            <span class="gauge__value">{{ '%.0f'|format(confidence) }}<small>%</small></span>
+            <span class="gauge__label">confidence</span>
+          </div>
+        </article>
+
+        {% if confidence < 60 %}
+        <div class="alert alert--warn">
+          {{ icon('info', 20) }}
+          <p><strong>Low confidence.</strong> The model isn't sure about this one. Try a sharper photo of a single leaf in daylight, and confirm with a local expert.</p>
+        </div>
+        {% endif %}
+
+        {% if instructions %}
+        <article class="card">
+          <h2 class="card__title">{{ 'Care recommendations' if is_healthy else 'Recommended actions' }}</h2>
+          <ol class="action-list">
+            {% for step in instructions %}<li>{{ step }}</li>{% endfor %}
+          </ol>
+        </article>
+        {% endif %}
+
+        <article class="card">
+          <h2 class="card__title">Prediction breakdown</h2>
+          <p class="card__sub">Top {{ ranked|length }} classes by model probability</p>
+          <ul class="prob-list">
+            {% for name, prob in ranked %}
+            <li class="prob {{ 'prob--top' if loop.first }}">
+              <div class="prob__row"><span>{{ name|replace('_', ' ') }}</span><strong>{{ prob }}%</strong></div>
+              <div class="prob__track"><div class="prob__fill" style="width: {{ prob }}%;"></div></div>
+            </li>
+            {% endfor %}
+          </ul>
+        </article>
+
+        <p class="result__disclaimer">
+          {{ icon('info', 16) }}
+          AI predictions can be wrong. Consult a qualified agricultural expert before large-scale treatment.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+{%- endmacro %}
+
+{% macro how_it_works(crop, model_note) -%}
+<section class="section" id="how-it-works">
+  <div class="container">
+    <header class="section-head">
+      <span class="eyebrow">Process</span>
+      <h2 class="section-title">From photo to diagnosis in three steps</h2>
+      <p class="section-lead">No lab, no waiting for an expert visit. Everything happens in your browser in a few seconds.</p>
+    </header>
+    <ol class="steps">
+      <li class="step reveal">
+        <span class="step__num">01</span>
+        <h3>Upload a photo</h3>
+        <p>Take a clear photo of the {{ crop }} leaf with your phone and upload it.</p>
+      </li>
+      <li class="step reveal">
+        <span class="step__num">02</span>
+        <h3>AI analyzes it</h3>
+        <p>{{ model_note }}</p>
+      </li>
+      <li class="step reveal">
+        <span class="step__num">03</span>
+        <h3>Get your diagnosis</h3>
+        <p>See the detected condition, a confidence score, and practical treatment steps.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+{%- endmacro %}

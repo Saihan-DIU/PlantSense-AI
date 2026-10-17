@@ -1,108 +1,124 @@
+{% from "_macros.html" import icon with context %}
+{% set is_guava = request.endpoint in ['guava_index', 'guava_predict'] %}
+{% set home_url = url_for('guava_index') if is_guava else url_for('index') %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="PlantSense AI detects plant leaf diseases from a single photo and gives practical treatment steps." />
+  <meta name="theme-color" content="#14231b" />
   <title>{% block title %}PlantSense AI{% endblock %}</title>
   <link rel="icon" href="{{ url_for('static', filename='images/logo.svg') }}" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
-  <nav class="navbar" id="navbar">
-    <div class="nav-container">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="navbar" id="navbar">
+    <div class="container nav-container">
       <a class="brand" href="{{ url_for('index') }}">
-        <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="PlantSense AI logo" class="brand-logo" />
-        PlantSense AI
+        <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="" class="brand__logo" width="32" height="32" />
+        <span class="brand__name">PlantSense<span class="brand__ai">AI</span></span>
       </a>
 
-      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
-        <span></span><span></span><span></span>
-      </button>
-
-      <div class="nav-menu" id="navMenu">
-        <a href="{{ url_for('index') }}#how-it-works">How It Works</a>
+      <nav class="nav-menu" id="navMenu" aria-label="Primary">
+        <a href="{{ home_url }}#how-it-works">How it works</a>
         <a href="{{ url_for('index') }}#features">Features</a>
-        <a href="{{ url_for('index') }}#upload">Diagnose Now</a>
-        <a href="{{ url_for('index') }}#about">About Us</a>
+        <a href="{{ url_for('index') }}#about">About</a>
 
         <div class="nav-dropdown" id="cropDropdown">
-          <button class="dropdown-toggle" id="cropDropdownToggle" aria-haspopup="true" aria-expanded="false">
-            🌱 Select Crop <span class="caret">▾</span>
+          <button class="crop-switch" id="cropDropdownToggle" aria-haspopup="true" aria-expanded="false" aria-controls="cropDropdownMenu">
+            {{ icon('leaf', 16) }}
+            <span>{{ 'Guava' if is_guava else 'Papaya' }}</span>
+            {{ icon('chevron-down', 16, 'crop-switch__caret') }}
           </button>
-          <div class="dropdown-menu" id="cropDropdownMenu">
-            <a href="{{ url_for('index') }}" class="dropdown-item active">
-              <span>🍈 Papaya Leaf Disease</span>
+          <div class="dropdown-menu" id="cropDropdownMenu" role="menu">
+            <p class="dropdown-label">Select crop</p>
+            <a href="{{ url_for('index') }}" role="menuitem" class="dropdown-item {{ '' if is_guava else 'active' }}">
+              <span class="dropdown-item__text"><strong>Papaya</strong><small>6 leaf conditions</small></span>
               <span class="status-badge status-live">Live</span>
             </a>
-            <button type="button" class="dropdown-item disabled" data-crop="guava">
-              <span>🍃 Guava Leaf Disease</span>
-              <span class="status-badge status-soon">Coming Soon</span>
-            </button>
-            <button type="button" class="dropdown-item disabled" data-crop="tomato">
-              <span>🍅 Tomato Leaf Disease</span>
-              <span class="status-badge status-soon">Coming Soon</span>
+            <a href="{{ url_for('guava_index') }}" role="menuitem" class="dropdown-item {{ 'active' if is_guava else '' }}">
+              <span class="dropdown-item__text"><strong>Guava</strong><small>6 leaf conditions</small></span>
+              <span class="status-badge status-live">Live</span>
+            </a>
+            <button type="button" role="menuitem" class="dropdown-item disabled" data-crop="tomato">
+              <span class="dropdown-item__text"><strong>Tomato</strong><small>In development</small></span>
+              <span class="status-badge status-soon">Soon</span>
             </button>
           </div>
         </div>
-      </div>
+
+        <a href="{{ home_url }}#upload" class="btn btn--primary btn--sm nav-cta">Diagnose a leaf</a>
+      </nav>
+
+      <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navMenu">
+        <span class="nav-toggle__open">{{ icon('menu', 22) }}</span>
+        <span class="nav-toggle__close">{{ icon('close', 22) }}</span>
+      </button>
     </div>
-  </nav>
+  </header>
 
-  <div id="toast" class="toast"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <div class="container">
-        <div class="flash">
-          {% for message in messages %}
-            <p>{{ message }}</p>
-          {% endfor %}
+  <main id="main">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="container">
+          <div class="alert alert--error" role="alert">
+            {{ icon('alert', 20) }}
+            <div>
+              {% for message in messages %}<p>{{ message }}</p>{% endfor %}
+            </div>
+          </div>
         </div>
-      </div>
-    {% endif %}
-  {% endwith %}
+      {% endif %}
+    {% endwith %}
 
-  {% block content %}{% endblock %}
+    {% block content %}{% endblock %}
+  </main>
 
   <footer class="site-footer">
     <div class="container footer-grid">
-      <div class="footer-col footer-about">
-        <p class="footer-brand">
-          <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="PlantSense AI logo" class="footer-logo" />
-          PlantSense AI
-        </p>
-        <p class="footer-desc">
-          An AI-powered plant leaf disease detection platform developed as an academic
-          research project, applying computer vision to real-world smart agriculture problems.
+      <div class="footer-about">
+        <a class="brand brand--footer" href="{{ url_for('index') }}">
+          <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="" class="brand__logo" width="28" height="28" />
+          <span class="brand__name">PlantSense<span class="brand__ai">AI</span></span>
+        </a>
+        <p>
+          AI-powered plant leaf disease detection, developed as an academic research project
+          applying computer vision to real-world smart agriculture.
         </p>
       </div>
 
       <div class="footer-col">
-        <h4 class="footer-heading">Navigation</h4>
-        <a href="{{ url_for('index') }}#how-it-works">How It Works</a>
+        <h4>Product</h4>
+        <a href="{{ url_for('index') }}">Papaya diagnosis</a>
+        <a href="{{ url_for('guava_index') }}">Guava diagnosis</a>
+        <a href="{{ home_url }}#how-it-works">How it works</a>
         <a href="{{ url_for('index') }}#features">Features</a>
-        <a href="{{ url_for('index') }}#upload">Diagnose Now</a>
-        <a href="{{ url_for('index') }}#about">About Us</a>
       </div>
 
       <div class="footer-col">
-        <h4 class="footer-heading">Institution</h4>
-        <p class="footer-text">Department of Computer Science &amp; Engineering</p>
-        <p class="footer-text">Dhaka International University</p>
+        <h4>Institution</h4>
+        <p>Department of Computer Science &amp; Engineering</p>
+        <p>Dhaka International University</p>
       </div>
 
       <div class="footer-col">
-        <h4 class="footer-heading">Disclaimer</h4>
-        <p class="footer-text">
-          Always consult a qualified local agricultural expert to confirm a diagnosis
-          before large-scale treatment.
-        </p>
+        <h4>Disclaimer</h4>
+        <p>Always consult a qualified local agricultural expert to confirm a diagnosis before large-scale treatment.</p>
       </div>
     </div>
 
-    <div class="footer-bottom">
-      <p>&copy; {{ current_year }} PlantSense AI &mdash; Dhaka International University. All rights reserved.</p>
-      <p class="footer-tagline">Built for academic research in AI-driven smart agriculture.</p>
+    <div class="container footer-bottom">
+      <p>&copy; {{ current_year }} PlantSense AI &middot; Dhaka International University</p>
+      <p>Built for academic research in AI-driven smart agriculture.</p>
     </div>
   </footer>
 

@@ -1,3 +1,14 @@
+---
+title: PlantSense AI
+emoji: 🌱
+colorFrom: green
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: false
+short_description: Detect papaya and guava leaf diseases from a photo
+---
+
 # PlantSense AI 🌱
 
 **PlantSense AI** is an AI-powered plant disease detection web application that helps users identify crop diseases from leaf images.
@@ -35,6 +46,7 @@ PlantSense-AI/
 ├── guava_model.py                # ConvNeXtV2-SSA architecture + preprocessing
 ├── guava_disease_info.py        # guava disease descriptions & treatment steps
 ├── requirements.txt
+├── Dockerfile                   # Hugging Face Spaces / any Docker host
 ├── Procfile
 ├── render.yaml
 ├── model/
@@ -92,19 +104,21 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 5. Add the trained models
+### 5. Get the trained models
 
-Place both checkpoints in the `model/` directory:
+Both checkpoints are stored in the repo with [Git LFS](https://git-lfs.com/). If `model/` only contains small text pointer files after cloning, run:
+
+```bash
+git lfs install
+git lfs pull
+```
+
+The `model/` directory must contain:
 * `MaxViT-Tiny_seed_42_best.pth` (papaya — filename must match `MODEL_PATH` in `app.py`)
 * `convnextv2_ssa_Leaf_best.pt` (guava — filename must match `MODEL_PATH` in `guava_model.py`)
 
 > **Important:** Each model's class order (`CLASS_NAMES` in `disease_info.py` / `guava_model.py`) must match the order used during training (alphabetical `ImageFolder` order, by default).
 
-> **Note:** Both checkpoints are ~120 MB each, exceeding GitHub's 100 MB single-file push limit. Track them with [Git LFS](https://git-lfs.com/) before committing:
-> ```bash
-> git lfs install
-> git lfs track "*.pth" "*.pt"
-> ```
 
 ### 6. Run the application
 
@@ -117,6 +131,23 @@ Then open:
 ```text
 http://127.0.0.1:5000
 ```
+
+## ☁️ Deploy (Hugging Face Spaces, free)
+
+The app is set up for a free **Docker Space** on Hugging Face (CPU basic: 2 vCPU, 16 GB RAM). The YAML block at the top of this README is the Space configuration, and the `Dockerfile` installs CPU-only PyTorch and serves the app with gunicorn on port 7860.
+
+1. Create a Space at [huggingface.co/new-space](https://huggingface.co/new-space) and choose **Docker → Blank**.
+2. Push this repository to it (model and image files go through Git LFS automatically):
+
+   ```bash
+   git remote add space https://huggingface.co/spaces/<username>/<space-name>
+   git push space main
+   ```
+
+   Use a Hugging Face access token with **write** permission as the password.
+3. The Space builds and goes live at `https://<username>-<space-name>.hf.space`.
+
+Free Spaces sleep after a period without visitors and wake up on the next visit (the first load takes about a minute).
 
 ## 🤖 Models
 

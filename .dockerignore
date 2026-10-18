@@ -1,0 +1,13 @@
+.git
+.gitattributes
+.claude
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+notebook/
+static/uploads/*
+!static/uploads/.gitkeep
+render.yaml
+Procfile

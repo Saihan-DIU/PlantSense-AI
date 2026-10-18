@@ -167,9 +167,21 @@ if (form && input && dropzone) {
     submitBtn.querySelector('.btn__label').textContent = label || 'Analyze leaf';
   };
 
+  // Clear the selected photo so the next analysis starts from an empty dropzone
+  const resetUpload = () => {
+    form.reset();
+    if (preview.src.startsWith('blob:')) URL.revokeObjectURL(preview.src);
+    preview.removeAttribute('src');
+    fileName.textContent = '';
+    dropzone.classList.remove('has-file');
+    dropzoneText.hidden = false;
+    dropzonePreview.hidden = true;
+    setError('');
+  };
+
   const browserConfig = document.getElementById('crop-config');
   const browser = form.dataset.mode === 'browser' && browserConfig
-    ? setupBrowserInference(JSON.parse(browserConfig.textContent), { setError, setLoading })
+    ? setupBrowserInference(JSON.parse(browserConfig.textContent), { setError, setLoading, resetUpload })
     : null;
 
   input.addEventListener('change', () => { if (input.files[0]) browser?.warmUp(); });
@@ -195,7 +207,7 @@ if (form && input && dropzone) {
 }
 
 // Static build: run the model in the browser and render the result in-page.
-function setupBrowserInference(config, { setError, setLoading }) {
+function setupBrowserInference(config, { setError, setLoading, resetUpload }) {
   const landing = document.getElementById('landing');
   const resultView = document.getElementById('result-view');
   const status = document.getElementById('model-status');
@@ -303,6 +315,7 @@ function setupBrowserInference(config, { setError, setLoading }) {
     resultView.hidden = true;
     landing.hidden = false;
     document.title = pageTitle;
+    resetUpload();
   };
 
   // Browser back button returns from the result to the upload page.

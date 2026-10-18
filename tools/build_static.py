@@ -107,9 +107,13 @@ def main():
                     help="don't copy model files into site/models (when hosted elsewhere)")
     args = ap.parse_args()
 
-    if os.path.exists(OUT):
-        shutil.rmtree(OUT)
-    os.makedirs(OUT)
+    # Start clean, but keep .vercel/ (the Vercel CLI's project link)
+    os.makedirs(OUT, exist_ok=True)
+    for name in os.listdir(OUT):
+        if name == ".vercel":
+            continue
+        path = os.path.join(OUT, name)
+        shutil.rmtree(path) if os.path.isdir(path) else os.remove(path)
 
     # Static assets (minus runtime uploads), runtime, and models
     shutil.copytree(os.path.join(ROOT, "static"), os.path.join(OUT, "static"),
@@ -158,6 +162,9 @@ def main():
         print(f"  wrote {os.path.relpath(dest, ROOT)}")
 
     shutil.copy2(os.path.join(ROOT, "vercel.json"), os.path.join(OUT, "vercel.json"))
+    # Never upload local env/token files the Vercel CLI may create here
+    with open(os.path.join(OUT, ".vercelignore"), "w", encoding="utf-8", newline="\n") as f:
+        f.write(".env*\n.gitignore\n")
     print(f"Built static site in {os.path.relpath(OUT, ROOT)}/")
 
 

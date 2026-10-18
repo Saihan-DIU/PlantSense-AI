@@ -164,8 +164,16 @@ Hugging Face Static Spaces) can serve, and photos never leave the visitor's devi
    python tools/serve_static.py
    ```
 
-4. **Deploy** the `site/` folder. On Vercel, `site/vercel.json` sets the
-   cross-origin isolation headers that let the model use several CPU threads.
+4. **Deploy** the `site/` folder (live at https://plantsense-ai.vercel.app).
+   With [Node.js](https://nodejs.org) installed:
+
+   ```bash
+   cd site
+   npx vercel@62.2.0 deploy --prod
+   ```
+
+   `site/vercel.json` sets the cross-origin isolation headers that let the model
+   use several CPU threads. Rebuilding keeps the `site/.vercel` project link.
 
 How it works: `static/js/inference.js` downloads the model once (cached in the
 browser afterwards), reproduces the Python preprocessing pixel-for-pixel

@@ -15,7 +15,8 @@ from guava_disease_info import DISEASE_INFO as GUAVA_DISEASE_INFO
 MODEL_ARCH = "maxvit_tiny_tf_224"  # must match the architecture the .pth was trained with
 MODEL_PATH = os.path.join("model", "MaxViT-Tiny_seed_42_best.pth")
 UPLOAD_FOLDER = os.path.join("static", "uploads")
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+# The browser converts HEIC/HEIF and AVIF to PNG before uploading (static/js/image-formats.js)
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "jfif", "webp", "gif", "bmp", "tif", "tiff"}
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-me")
@@ -95,7 +96,7 @@ def predict():
         return redirect(url_for("index"))
 
     if not allowed_file(file.filename):
-        flash("Unsupported file type. Please upload a PNG or JPG image.")
+        flash("Unsupported file type. Please upload a JPG, PNG, HEIC, WEBP, GIF, BMP or TIFF image.")
         return redirect(url_for("index"))
 
     filename = secure_filename(file.filename)
@@ -156,7 +157,7 @@ def guava_predict():
         return redirect(url_for("guava_index"))
 
     if not allowed_file(file.filename):
-        flash("Unsupported file type. Please upload a PNG or JPG image.")
+        flash("Unsupported file type. Please upload a JPG, PNG, HEIC, WEBP, GIF, BMP or TIFF image.")
         return redirect(url_for("guava_index"))
 
     filename = secure_filename(file.filename)

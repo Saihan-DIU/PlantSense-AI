@@ -92,10 +92,7 @@ if (revealEls.length && 'IntersectionObserver' in window) {
   revealEls.forEach((el) => el.classList.add('in-view'));
 }
 
-// Upload: preview, drag & drop, client-side validation, loading state
-const MAX_UPLOAD_BYTES = 8 * 1024 * 1024; // keep in sync with MAX_CONTENT_LENGTH in app.py
-const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
-
+// Upload: preview, drag & drop, format conversion, validation, loading state
 const form = document.getElementById('upload-form');
 const input = document.getElementById('leaf_image');
 const dropzone = document.getElementById('dropzone');
@@ -108,40 +105,92 @@ const submitBtn = document.getElementById('submit-btn');
 
 if (form && input && dropzone) {
   form.noValidate = true; // show our inline message instead of the browser tooltip
+  // Server uploads are capped by MAX_CONTENT_LENGTH in app.py; in-browser analysis uploads nothing.
+  const maxMb = Number(form.dataset.maxMb) || 8;
   const formatSize = (bytes) =>
     bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+
+  // HEIC/TIFF converters live in a separate module, loaded on first use
+  let formatsModule = null;
+  const formats = () => (formatsModule ||= import('/static/js/image-formats.js'));
 
   const setError = (message) => {
     uploadError.textContent = message || '';
     uploadError.hidden = !message;
   };
 
-  const validate = (file) => {
-    if (!file) return 'Please choose a leaf photo first.';
-    if (!ACCEPTED_TYPES.includes(file.type)) return 'Unsupported file type. Please upload a PNG, JPG or WEBP image.';
-    if (file.size > MAX_UPLOAD_BYTES) return `That file is ${formatSize(file.size)}. The limit is 8 MB.`;
-    return '';
+  const setLoading = (loading, label) => {
+    submitBtn.classList.toggle('is-loading', loading);
+    submitBtn.querySelector('.btn__label').textContent = label || 'Analyze leaf';
   };
 
-  const showFile = (file) => {
-    const error = validate(file);
-    setError(error);
-    if (error || !file) {
-      input.value = '';
-      dropzone.classList.remove('has-file');
-      dropzoneText.hidden = false;
-      dropzonePreview.hidden = true;
-      return;
-    }
+  let selected = null; // the photo to analyze (converted to PNG if needed)
+  let pending = null;  // in-flight conversion
+  let token = 0;       // ignores results for photos the user has since replaced
+
+  const clearPreview = () => {
     if (preview.src.startsWith('blob:')) URL.revokeObjectURL(preview.src);
-    preview.src = URL.createObjectURL(file);
-    fileName.textContent = `${file.name} · ${formatSize(file.size)}`;
+    preview.removeAttribute('src');
+    fileName.textContent = '';
+    dropzone.classList.remove('has-file');
+    dropzoneText.hidden = false;
+    dropzonePreview.hidden = true;
+  };
+
+  const showPreview = (file, label) => {
+    if (preview.src.startsWith('blob:')) URL.revokeObjectURL(preview.src);
+    if (file) preview.src = URL.createObjectURL(file);
+    else preview.removeAttribute('src');
+    fileName.textContent = label;
     dropzone.classList.add('has-file');
     dropzoneText.hidden = true;
     dropzonePreview.hidden = false;
   };
 
-  input.addEventListener('change', () => showFile(input.files[0]));
+  const handleFile = async (file) => {
+    const mine = ++token;
+    selected = null;
+    pending = null;
+    setError('');
+    if (!file) { clearPreview(); return; }
+    if (file.size > maxMb * 1024 * 1024) {
+      setError(`That file is ${formatSize(file.size)}. The limit is ${maxMb} MB.`);
+      input.value = '';
+      clearPreview();
+      return;
+    }
+    const label = `${file.name} · ${formatSize(file.size)}`;
+    showPreview(null, `${label} · preparing…`);
+    pending = formats().then((m) => m.normalizeImage(file, { forServer: !browser }));
+    try {
+      const ready = await pending;
+      if (mine !== token) return;
+      if (!browser && ready.size > maxMb * 1024 * 1024) {
+        throw new Error(`After conversion this photo is ${formatSize(ready.size)}, over the ${maxMb} MB limit. Try a smaller photo or a JPG.`);
+      }
+      selected = ready;
+      showPreview(ready, label);
+      // Server mode posts the form, so send the converted image instead of the original
+      if (!browser && ready !== file) {
+        const dt = new DataTransfer();
+        dt.items.add(ready);
+        input.files = dt.files;
+      }
+    } catch (err) {
+      if (mine !== token) return;
+      setError(err.message || 'This image could not be read.');
+      input.value = '';
+      clearPreview();
+    } finally {
+      if (mine === token) pending = null;
+    }
+  };
+
+  input.addEventListener('change', () => {
+    // Ignore the change event fired when we swap in a converted file ourselves
+    if (selected && input.files[0] === selected) return;
+    handleFile(input.files[0]);
+  });
 
   ['dragenter', 'dragover'].forEach((type) =>
     dropzone.addEventListener(type, (e) => {
@@ -159,23 +208,16 @@ if (form && input && dropzone) {
     const files = e.dataTransfer && e.dataTransfer.files;
     if (!files || !files.length) return;
     input.files = files;
-    showFile(files[0]);
+    handleFile(files[0]);
   });
-
-  const setLoading = (loading, label) => {
-    submitBtn.classList.toggle('is-loading', loading);
-    submitBtn.querySelector('.btn__label').textContent = label || 'Analyze leaf';
-  };
 
   // Clear the selected photo so the next analysis starts from an empty dropzone
   const resetUpload = () => {
+    token++;
+    selected = null;
+    pending = null;
     form.reset();
-    if (preview.src.startsWith('blob:')) URL.revokeObjectURL(preview.src);
-    preview.removeAttribute('src');
-    fileName.textContent = '';
-    dropzone.classList.remove('has-file');
-    dropzoneText.hidden = false;
-    dropzonePreview.hidden = true;
+    clearPreview();
     setError('');
   };
 
@@ -186,20 +228,23 @@ if (form && input && dropzone) {
 
   input.addEventListener('change', () => { if (input.files[0]) browser?.warmUp(); });
 
-  form.addEventListener('submit', (e) => {
-    const file = input.files[0];
-    const error = validate(file);
-    if (error) {
-      e.preventDefault();
-      setError(error);
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (pending) {
+      setLoading(true, 'Preparing photo…');
+      try { await pending; } catch { /* error already shown */ }
+      setLoading(false);
+    }
+    if (!selected) {
+      if (!uploadError.textContent) setError('Please choose a leaf photo first.');
       return;
     }
     if (browser) {
-      e.preventDefault();
-      browser.analyze(file);
+      browser.analyze(selected);
       return;
     }
     setLoading(true, 'Analyzing…');
+    form.submit();
   });
 
   // Reset the button if the user navigates back to this page from the result

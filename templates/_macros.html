@@ -35,7 +35,7 @@
   <div class="upload-card__head">
     <div>
       <p class="upload-card__title">Analyze a {{ crop }} leaf</p>
-      <p class="upload-card__sub">PNG, JPG or WEBP &middot; up to 8&nbsp;MB</p>
+      <p class="upload-card__sub">JPG, PNG, HEIC, WEBP &amp; more &middot; up to {{ 25 if static_build else 8 }}&nbsp;MB</p>
     </div>
     {% if static_build %}
     <span class="pill pill--live"><span class="pill__dot"></span>Runs on your device</span>
@@ -45,12 +45,12 @@
   </div>
 
   {% if static_build %}
-  <form id="upload-form" class="upload-form" data-mode="browser">
+  <form id="upload-form" class="upload-form" data-mode="browser" data-max-mb="25">
   {% else %}
-  <form action="{{ action }}" method="post" enctype="multipart/form-data" id="upload-form" class="upload-form">
+  <form action="{{ action }}" method="post" enctype="multipart/form-data" id="upload-form" class="upload-form" data-max-mb="8">
   {% endif %}
     <label for="leaf_image" class="dropzone" id="dropzone">
-      <input type="file" name="leaf_image" id="leaf_image" accept="image/png, image/jpeg, image/webp" required class="visually-hidden" />
+      <input type="file" name="leaf_image" id="leaf_image" accept="image/*,.heic,.heif,.tif,.tiff,.avif" required class="visually-hidden" />
       <span class="dropzone__empty" id="dropzone-text">
         <span class="dropzone__icon">{{ icon('upload', 22) }}</span>
         <span class="dropzone__lead"><strong>Click to upload</strong> or drag and drop</span>

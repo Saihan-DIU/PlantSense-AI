@@ -52,8 +52,6 @@ PlantSense-AI/
 │   ├── export_onnx.py           # PyTorch -> ONNX (+ accuracy comparison)
 │   ├── build_static.py          # renders the static site into site/
 │   └── serve_static.py          # local preview / in-browser accuracy check
-├── Procfile
-├── render.yaml
 ├── model/
 │   ├── MaxViT-Tiny_seed_42_best.pth      # papaya model
 │   └── convnextv2_ssa_Leaf_best.pt       # guava model

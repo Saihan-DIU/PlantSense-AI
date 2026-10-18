@@ -9,5 +9,5 @@ venv/
 notebook/
 static/uploads/*
 !static/uploads/.gitkeep
-render.yaml
-Procfile
+site/
+web_models/

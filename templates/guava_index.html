@@ -1,8 +1,9 @@
 {% extends "base.html" %}
-{% from "_macros.html" import icon, upload_card, how_it_works with context %}
+{% from "_macros.html" import icon, upload_card, how_it_works, result_view with context %}
 {% block title %}Guava Leaf Disease Detection — PlantSense AI{% endblock %}
 
 {% block content %}
+<div id="landing">
 <section class="hero">
   <div class="container hero__inner">
     <div class="hero__copy">
@@ -35,4 +36,12 @@
 </section>
 
 {{ how_it_works('guava', 'A ConvNeXtV2 + attention model scans the leaf for visual signs of disease in seconds.') }}
+</div>
+
+{% if static_build %}
+<div id="result-view" hidden>
+  {{ result_view(url_for('guava_index'), 'guava') }}
+</div>
+<script type="application/json" id="crop-config">{{ crop_config|tojson }}</script>
+{% endif %}
 {% endblock %}

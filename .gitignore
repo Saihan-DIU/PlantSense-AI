@@ -6,3 +6,9 @@ static/uploads/*
 !static/uploads/.gitkeep
 .env
 
+
+# Converted browser models (published separately)
+web_models/
+
+# Static build output (tools/build_static.py)
+site/

@@ -37,10 +37,18 @@
       <p class="upload-card__title">Analyze a {{ crop }} leaf</p>
       <p class="upload-card__sub">PNG, JPG or WEBP &middot; up to 8&nbsp;MB</p>
     </div>
+    {% if static_build %}
+    <span class="pill pill--live"><span class="pill__dot"></span>Runs on your device</span>
+    {% else %}
     <span class="pill pill--live"><span class="pill__dot"></span>Model online</span>
+    {% endif %}
   </div>
 
+  {% if static_build %}
+  <form id="upload-form" class="upload-form" data-mode="browser">
+  {% else %}
   <form action="{{ action }}" method="post" enctype="multipart/form-data" id="upload-form" class="upload-form">
+  {% endif %}
     <label for="leaf_image" class="dropzone" id="dropzone">
       <input type="file" name="leaf_image" id="leaf_image" accept="image/png, image/jpeg, image/webp" required class="visually-hidden" />
       <span class="dropzone__empty" id="dropzone-text">
@@ -64,6 +72,17 @@
       <span class="btn__label">Analyze leaf</span>
       {{ icon('arrow-right', 18, 'btn__arrow') }}
     </button>
+
+    {% if static_build %}
+    <div class="model-status" id="model-status" hidden>
+      <div class="model-status__row">
+        <span id="model-status-text">Preparing the AI model…</span>
+        <span id="model-status-pct"></span>
+      </div>
+      <div class="model-status__track"><div class="model-status__fill" id="model-status-fill"></div></div>
+    </div>
+    <p class="upload-privacy">{{ icon('shield', 14) }} Your photo is analyzed on this device and never uploaded.</p>
+    {% endif %}
   </form>
 
   <ul class="upload-tips" aria-label="Photo tips">
@@ -78,14 +97,16 @@
 {%- endmacro %}
 
 {# Diagnosis page body. Reads predicted_class, confidence, description,
-   instructions, is_healthy, ranked and image_url from the render context. #}
+   instructions, is_healthy, ranked and image_url from the render context.
+   The static (in-browser) build renders it once with placeholders and
+   static/js/app.js fills in the result-* elements. #}
 {% macro result_view(back_url, crop) -%}
 {% set label = predicted_class|replace('_', ' ') %}
 {% set tone = 'healthy' if is_healthy else 'disease' %}
 <section class="result">
   <div class="container">
     <nav class="breadcrumb" aria-label="Breadcrumb">
-      <a href="{{ back_url }}">{{ icon('arrow-left', 16) }} {{ crop|capitalize }} diagnosis</a>
+      <a href="{{ back_url }}" data-action="new-analysis">{{ icon('arrow-left', 16) }} {{ crop|capitalize }} diagnosis</a>
       <span aria-hidden="true">/</span>
       <span aria-current="page">Result</span>
     </nav>
@@ -93,51 +114,48 @@
     <div class="result__grid">
       <aside class="result__media">
         <figure class="result__image">
-          <img src="{{ image_url }}" alt="Uploaded {{ crop }} leaf" />
+          <img src="{{ image_url }}" alt="Uploaded {{ crop }} leaf" id="result-image" />
           <figcaption>Uploaded photo</figcaption>
         </figure>
         <div class="result__actions">
-          <a href="{{ back_url }}#upload" class="btn btn--primary btn--block">{{ icon('refresh', 18) }} Analyze another leaf</a>
+          <a href="{{ back_url }}#upload" class="btn btn--primary btn--block" data-action="new-analysis">{{ icon('refresh', 18) }} Analyze another leaf</a>
           <button type="button" class="btn btn--ghost btn--block" onclick="window.print()">{{ icon('printer', 18) }} Print report</button>
         </div>
       </aside>
 
       <div class="result__body">
-        <article class="card verdict verdict--{{ tone }}">
+        <article class="card verdict verdict--{{ tone }}" id="result-verdict">
           <div class="verdict__main">
-            <span class="status status--{{ tone }}">
-              {{ icon('shield' if is_healthy else 'alert', 16) }}
-              {{ 'Healthy leaf' if is_healthy else 'Disease detected' }}
+            <span class="status status--{{ tone }}" id="result-status">
+              {{ icon('shield', 16, 'status__icon status__icon--healthy') }}
+              {{ icon('alert', 16, 'status__icon status__icon--disease') }}
+              <span id="result-status-text">{{ 'Healthy leaf' if is_healthy else 'Disease detected' }}</span>
             </span>
-            <h1 class="verdict__title">{{ label }}</h1>
-            {% if description %}<p class="verdict__desc">{{ description }}</p>{% endif %}
+            <h1 class="verdict__title" id="result-title">{{ label }}</h1>
+            <p class="verdict__desc" id="result-desc"{{ ' hidden' if not description }}>{{ description }}</p>
           </div>
-          <div class="gauge" style="--p: {{ confidence }};" role="img" aria-label="Confidence {{ confidence }} percent">
-            <span class="gauge__value">{{ '%.0f'|format(confidence) }}<small>%</small></span>
+          <div class="gauge" style="--p: {{ confidence }};" role="img" aria-label="Confidence {{ confidence }} percent" id="result-gauge">
+            <span class="gauge__value"><span id="result-gauge-value">{{ '%.0f'|format(confidence) }}</span><small>%</small></span>
             <span class="gauge__label">confidence</span>
           </div>
         </article>
 
-        {% if confidence < 60 %}
-        <div class="alert alert--warn">
+        <div class="alert alert--warn" id="result-lowconf"{{ ' hidden' if confidence >= 60 or static_build }}>
           {{ icon('info', 20) }}
           <p><strong>Low confidence.</strong> The model isn't sure about this one. Try a sharper photo of a single leaf in daylight, and confirm with a local expert.</p>
         </div>
-        {% endif %}
 
-        {% if instructions %}
-        <article class="card">
-          <h2 class="card__title">{{ 'Care recommendations' if is_healthy else 'Recommended actions' }}</h2>
-          <ol class="action-list">
+        <article class="card" id="result-actions-card"{{ ' hidden' if not instructions }}>
+          <h2 class="card__title" id="result-actions-title">{{ 'Care recommendations' if is_healthy else 'Recommended actions' }}</h2>
+          <ol class="action-list" id="result-actions-list">
             {% for step in instructions %}<li>{{ step }}</li>{% endfor %}
           </ol>
         </article>
-        {% endif %}
 
         <article class="card">
           <h2 class="card__title">Prediction breakdown</h2>
           <p class="card__sub">Top {{ ranked|length }} classes by model probability</p>
-          <ul class="prob-list">
+          <ul class="prob-list" id="result-prob-list">
             {% for name, prob in ranked %}
             <li class="prob {{ 'prob--top' if loop.first }}">
               <div class="prob__row"><span>{{ name|replace('_', ' ') }}</span><strong>{{ prob }}%</strong></div>
@@ -163,7 +181,7 @@
     <header class="section-head">
       <span class="eyebrow">Process</span>
       <h2 class="section-title">From photo to diagnosis in three steps</h2>
-      <p class="section-lead">No lab, no waiting for an expert visit. Everything happens in your browser in a few seconds.</p>
+      <p class="section-lead">No lab, no waiting for an expert visit. {{ 'Everything runs right in your browser, in a few seconds.' if static_build else 'Results arrive in a few seconds.' }}</p>
     </header>
     <ol class="steps">
       <li class="step reveal">

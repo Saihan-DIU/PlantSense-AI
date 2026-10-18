@@ -705,6 +705,37 @@ button { font: inherit; color: inherit; }
 
 .form-error { font-size: var(--fs-sm); color: var(--danger); }
 
+/* In-browser model download / analysis progress */
+.model-status { display: grid; gap: 8px; font-size: var(--fs-xs); color: var(--muted); }
+.model-status__row { display: flex; justify-content: space-between; gap: 12px; }
+.model-status__row span:last-child { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ink-2); }
+.model-status__track { height: 6px; background: var(--surface-2); border-radius: var(--r-full); overflow: hidden; }
+.model-status__fill {
+  width: 0;
+  height: 100%;
+  background: var(--brand);
+  border-radius: inherit;
+  transition: width .2s linear;
+}
+.model-status.is-indeterminate .model-status__fill {
+  width: 35%;
+  animation: indeterminate 1.2s var(--ease) infinite;
+}
+@keyframes indeterminate {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(300%); }
+}
+
+.upload-privacy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+.upload-privacy .icon { color: var(--brand); }
+
 .upload-tips {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -982,6 +1013,8 @@ button { font: inherit; color: inherit; }
 }
 .status--healthy { color: var(--brand-700); background: var(--brand-50); }
 .status--disease { color: var(--danger); background: var(--danger-50); }
+.status--healthy .status__icon--disease,
+.status--disease .status__icon--healthy { display: none; }
 
 .verdict__title {
   margin-top: 14px;

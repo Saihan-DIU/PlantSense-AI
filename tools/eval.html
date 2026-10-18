@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>In-browser accuracy check</title>
+<style>
+  body { font: 14px/1.5 system-ui, sans-serif; margin: 24px; color: #13211a; }
+  table { border-collapse: collapse; margin-top: 12px; }
+  td, th { border: 1px solid #ddd; padding: 6px 10px; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  #log { white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: 12px; color: #555; }
+</style>
+</head>
+<body>
+<h1>In-browser accuracy check</h1>
+<p>Runs static/js/inference.js on each image and compares with the Python model.</p>
+<p id="state">Starting…</p>
+<table id="table"><tr><th>Crop</th><th>Images</th><th>Accuracy</th><th>Same as Python</th><th>Mismatches</th><th>Avg ms / image</th></tr></table>
+<div id="log"></div>
+<script type="module">
+  const html = await (await fetch('/')).text();
+  const config = JSON.parse(new DOMParser().parseFromString(html, 'text/html').getElementById('crop-config').textContent);
+  const { createPredictor } = await import(config.inference_module);
+  const manifest = await (await fetch('/__eval/manifest.json')).json();
+  const params = new URLSearchParams(location.search);
+  const limit = Number(params.get('limit')) || Infinity;
+  const state = document.getElementById('state');
+  const log = document.getElementById('log');
+  const results = {};
+  window.__evalResults = results;
+
+  for (const crop of Object.keys(manifest)) {
+    const page = crop === 'papaya' ? '/' : `/${crop}/`;
+    const text = await (await fetch(page)).text();
+    const cfg = JSON.parse(new DOMParser().parseFromString(text, 'text/html').getElementById('crop-config').textContent);
+    const predictor = createPredictor(cfg);
+    state.textContent = `Loading ${crop} model…`;
+    await predictor.preload();
+    const rows = manifest[crop].slice(0, limit);
+    let correct = 0, same = 0, ms = 0;
+    const mismatches = [];
+    for (let i = 0; i < rows.length; i++) {
+      const blob = await (await fetch(`/__eval/img/${crop}/${i}`)).blob();
+      const t = performance.now();
+      const r = await predictor.predict(blob);
+      ms += performance.now() - t;
+      if (r.index === rows[i].label) correct++;
+      if (r.index === rows[i].ref) same++;
+      else mismatches.push({ i, browser: cfg.classes[r.index], python: cfg.classes[rows[i].ref], conf: r.confidence.toFixed(1) });
+      if (i % 25 === 0) state.textContent = `${crop}: ${i + 1}/${rows.length}`;
+    }
+    const n = rows.length;
+    results[crop] = {
+      n, accuracy: +(correct / n * 100).toFixed(2), agree: +(same / n * 100).toFixed(2),
+      mismatches, ms: Math.round(ms / n),
+    };
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${crop}</td><td>${n}</td><td>${results[crop].accuracy}%</td><td>${results[crop].agree}%</td><td>${mismatches.length}</td><td>${results[crop].ms}</td>`;
+    document.getElementById('table').appendChild(tr);
+    log.textContent += mismatches.map((m) => `${crop} #${m.i}: browser ${m.browser} (${m.conf}%) vs python ${m.python}`).join('\n') + '\n';
+  }
+  state.textContent = `Done. crossOriginIsolated=${self.crossOriginIsolated}, threads=${self.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency) : 1}`;
+  window.__evalDone = true;
+</script>
+</body>
+</html>

@@ -46,7 +46,12 @@ PlantSense-AI/
 ├── guava_model.py                # ConvNeXtV2-SSA architecture + preprocessing
 ├── guava_disease_info.py        # guava disease descriptions & treatment steps
 ├── requirements.txt
-├── Dockerfile                   # Hugging Face Spaces / any Docker host
+├── Dockerfile                   # Flask server on any Docker host
+├── vercel.json                  # headers for the static (in-browser) build
+├── tools/
+│   ├── export_onnx.py           # PyTorch -> ONNX (+ accuracy comparison)
+│   ├── build_static.py          # renders the static site into site/
+│   └── serve_static.py          # local preview / in-browser accuracy check
 ├── Procfile
 ├── render.yaml
 ├── model/
@@ -132,22 +137,47 @@ Then open:
 http://127.0.0.1:5000
 ```
 
-## ☁️ Deploy (Hugging Face Spaces, free)
+## ☁️ Deploy for free (AI runs in the browser)
 
-The app is set up for a free **Docker Space** on Hugging Face (CPU basic: 2 vCPU, 16 GB RAM). The YAML block at the top of this README is the Space configuration, and the `Dockerfile` installs CPU-only PyTorch and serves the app with gunicorn on port 7860.
+The site can run with **no Python server at all**: the models are converted to
+ONNX and run in the visitor's browser with
+[onnxruntime-web](https://onnxruntime.ai/docs/tutorials/web/). The result is a
+plain static site that any free static host (Vercel, Netlify, GitHub Pages,
+Hugging Face Static Spaces) can serve, and photos never leave the visitor's device.
 
-1. Create a Space at [huggingface.co/new-space](https://huggingface.co/new-space) and choose **Docker → Blank**.
-2. Push this repository to it (model and image files go through Git LFS automatically):
+1. **Convert the models** (half-precision ONNX, ~62 MB each; verified to give the
+   same predictions as PyTorch on the papaya test set and a guava sample):
 
    ```bash
-   git remote add space https://huggingface.co/spaces/<username>/<space-name>
-   git push space main
+   pip install onnx onnxruntime onnxscript onnxconverter-common
+   python tools/export_onnx.py --papaya-test "<papaya>/test" --papaya-calib "<papaya>/train" --guava-data "<guava>/Leaf"
    ```
 
-   Use a Hugging Face access token with **write** permission as the password.
-3. The Space builds and goes live at `https://<username>-<space-name>.hf.space`.
+2. **Build the static site** into `site/` (same templates as the Flask app):
 
-Free Spaces sleep after a period without visitors and wake up on the next visit (the first load takes about a minute).
+   ```bash
+   python tools/build_static.py
+   ```
+
+3. **Preview locally** at http://localhost:8080 (`--eval` adds `/__eval/`, which
+   checks in-browser predictions against Python on the test images):
+
+   ```bash
+   python tools/serve_static.py
+   ```
+
+4. **Deploy** the `site/` folder. On Vercel, `site/vercel.json` sets the
+   cross-origin isolation headers that let the model use several CPU threads.
+
+How it works: `static/js/inference.js` downloads the model once (cached in the
+browser afterwards), reproduces the Python preprocessing pixel-for-pixel
+(PIL-style resizing, and the OpenCV background removal for guava), and runs the
+model with WebAssembly. Analysis takes about half a second on a laptop.
+
+### Running the Flask server instead
+
+The original server version still works (`python app.py`), and the `Dockerfile`
+runs it on any Docker host, such as a paid Hugging Face Docker Space.
 
 ## 🤖 Models
 

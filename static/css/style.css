@@ -1125,6 +1125,9 @@ button { font: inherit; color: inherit; }
 }
 .footer-col a { transition: color .15s; }
 .footer-col a:hover { color: #fff; }
+.footer-external { display: inline-flex; align-items: center; gap: 6px; }
+.footer-external__icon { transform: rotate(-45deg); transition: transform .15s var(--ease); }
+.footer-external:hover .footer-external__icon { transform: rotate(-45deg) translateX(2px); }
 
 .footer-bottom {
   display: flex;

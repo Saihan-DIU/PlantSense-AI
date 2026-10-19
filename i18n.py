@@ -27,6 +27,11 @@ STRINGS = {
     "title.home": ("{Crop} Leaf Disease Detection — PlantSense AI", "{Crop} পাতার রোগ শনাক্তকরণ — PlantSense AI"),
     "title.result": ("{label} — {Crop} Diagnosis · PlantSense AI", "{label} — {Crop} রোগ নির্ণয় · PlantSense AI"),
     "skip": ("Skip to content", "মূল অংশে যান"),
+    "meta.crop_description": (
+        "Free AI tool that detects {crop} leaf diseases from a photo and gives step-by-step treatment advice. Works on any phone, in English and Bangla.",
+        "ছবি থেকে {crop} পাতার রোগ শনাক্ত করে ধাপে ধাপে চিকিৎসার পরামর্শ দেয় এমন একটি বিনামূল্যের এআই টুল। যেকোনো ফোনে চলে, বাংলা ও ইংরেজিতে।",
+    ),
+    "meta.og_locale": ("en_US", "bn_BD"),
 
     # Crops
     "crop.papaya": ("papaya", "পেঁপে"),
@@ -370,7 +375,12 @@ def flask_context():
     endpoint = request.endpoint or ""
     home = HOME_ENDPOINTS.get(endpoint) or ("guava_index" if endpoint.startswith("guava") else "index")
     en_url = url_for(home)
+    import site_meta
+
     return {
+        "site_url": site_meta.SITE_URL,
+        "google_site_verification": site_meta.GOOGLE_SITE_VERIFICATION,
+        "page_path": lang_path(url_for(home), lang),
         "lang": lang,
         "t": translator(lang),
         "n": lambda value: num(value, lang),

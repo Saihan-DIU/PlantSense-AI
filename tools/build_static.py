@@ -98,6 +98,35 @@ def fetch_ort(dest_dir):
     shutil.copytree(cache, dest_dir)
 
 
+def write_search_files():
+    """sitemap.xml (every page with its other-language version) and robots.txt."""
+    import site_meta
+    from datetime import date
+
+    base = site_meta.SITE_URL
+    today = date.today().isoformat()
+    urls = []
+    for c in CROPS.values():
+        alternates = "".join(
+            f'\n    <xhtml:link rel="alternate" hreflang="{lang}" href="{base}{i18n.lang_path(c["endpoint_path"], lang)}"/>'
+            for lang in i18n.LANGS
+        )
+        for lang in i18n.LANGS:
+            urls.append(
+                f"  <url>\n    <loc>{base}{i18n.lang_path(c['endpoint_path'], lang)}</loc>\n"
+                f"    <lastmod>{today}</lastmod>{alternates}\n  </url>"
+            )
+    sitemap = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+        'xmlns:xhtml="http://www.w3.org/1999/xhtml">\n' + "\n".join(urls) + "\n</urlset>\n"
+    )
+    with open(os.path.join(OUT, "sitemap.xml"), "w", encoding="utf-8", newline="\n") as f:
+        f.write(sitemap)
+    with open(os.path.join(OUT, "robots.txt"), "w", encoding="utf-8", newline="\n") as f:
+        f.write(f"User-agent: *\nAllow: /\n\nSitemap: {base}/sitemap.xml\n")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model-base", default="/models/",
@@ -165,6 +194,12 @@ def main():
                 f.write(html)
             print(f"  wrote {os.path.relpath(dest, ROOT)}")
 
+    # Files served from the site root as-is (e.g. Google Search Console verification)
+    public = os.path.join(ROOT, "public")
+    if os.path.isdir(public):
+        shutil.copytree(public, OUT, dirs_exist_ok=True)
+
+    write_search_files()
     shutil.copy2(os.path.join(ROOT, "vercel.json"), os.path.join(OUT, "vercel.json"))
     # Never upload local env/token files the Vercel CLI may create here
     with open(os.path.join(OUT, ".vercelignore"), "w", encoding="utf-8", newline="\n") as f:

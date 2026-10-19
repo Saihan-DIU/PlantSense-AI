@@ -6,14 +6,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="{{ t('meta.description') }}" />
+  {% set page_crop = 'guava' if is_guava else 'papaya' %}
+  {% set page_description = t('meta.crop_description', crop=page_crop) %}
+  <meta name="description" content="{{ page_description }}" />
   <meta name="color-scheme" content="light dark" />
   <meta name="theme-color" content="#f7f6f2" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#0d1411" media="(prefers-color-scheme: dark)" />
   <title>{% block title %}PlantSense AI{% endblock %}</title>
+  {% set page_title = self.title() %}
+  {% if google_site_verification %}
+  <meta name="google-site-verification" content="{{ google_site_verification }}" />
+  {% endif %}
   {% if is_home_page %}
-  <link rel="alternate" hreflang="en" href="{{ lang_urls.en }}" />
-  <link rel="alternate" hreflang="bn" href="{{ lang_urls.bn }}" />
+  {# Search engines: one canonical address per page, plus its other-language version #}
+  <link rel="canonical" href="{{ site_url }}{{ page_path }}" />
+  <link rel="alternate" hreflang="en" href="{{ site_url }}{{ lang_urls.en }}" />
+  <link rel="alternate" hreflang="bn" href="{{ site_url }}{{ lang_urls.bn }}" />
+  <link rel="alternate" hreflang="x-default" href="{{ site_url }}{{ lang_urls.en }}" />
+
+  {# Link previews (Facebook, WhatsApp, LinkedIn, X) #}
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="PlantSense AI" />
+  <meta property="og:title" content="{{ page_title }}" />
+  <meta property="og:description" content="{{ page_description }}" />
+  <meta property="og:url" content="{{ site_url }}{{ page_path }}" />
+  <meta property="og:image" content="{{ site_url }}{{ url_for('static', filename='images/og-image.png') }}" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="PlantSense AI" />
+  <meta property="og:locale" content="{{ t('meta.og_locale') }}" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <script type="application/ld+json">
+  {{ {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "PlantSense AI",
+    "alternateName": "PlantSense",
+    "url": site_url ~ page_path,
+    "description": page_description,
+    "inLanguage": lang,
+    "applicationCategory": "Agriculture",
+    "operatingSystem": "Any (web browser)",
+    "isAccessibleForFree": true,
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "BDT"},
+    "creator": [
+      {"@type": "Person", "name": "Md Saihan Alam", "sameAs": "https://www.linkedin.com/in/md-saihan-alam"},
+      {"@type": "Person", "name": "Zubayer Ahmad", "sameAs": "https://www.linkedin.com/in/zubayer-ahmad/"}
+    ],
+    "sourceOrganization": {"@type": "CollegeOrUniversity", "name": "Dhaka International University", "url": "https://diu.ac/"}
+  }|tojson }}
+  </script>
   <script>
     // Send returning visitors to the language they picked last time (or Bangla
     // for Bangla browsers), but only when they arrive from outside the site.

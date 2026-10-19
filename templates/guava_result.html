@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "_macros.html" import result_view with context %}
-{% block title %}{{ predicted_class|replace('_', ' ') }} — Guava Diagnosis · PlantSense AI{% endblock %}
+{% block title %}{{ t('title.result', label=display_name, crop='guava') }}{% endblock %}
 
 {% block content %}
-{{ result_view(url_for('guava_index'), 'guava') }}
+{{ result_view(lurl('guava_index'), 'guava') }}
 {% endblock %}

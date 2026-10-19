@@ -27,7 +27,7 @@ sys.path.insert(0, ROOT)
 from datetime import datetime  # noqa: E402
 
 import disease_info  # noqa: E402
-import guava_disease_info  # noqa: E402
+import i18n  # noqa: E402
 
 OUT = os.path.join(ROOT, "site")
 MODELS_SRC = os.path.join(ROOT, "web_models")
@@ -52,7 +52,6 @@ CROPS = {
         "endpoint_path": "/",
         "out": "index.html",
         "classes": disease_info.CLASS_NAMES,
-        "info": disease_info.DISEASE_INFO,
     },
     "guava": {
         "label": "Guava",
@@ -60,7 +59,6 @@ CROPS = {
         "endpoint_path": "/guava",
         "out": os.path.join("guava", "index.html"),
         "classes": guava_class_names(),
-        "info": guava_disease_info.DISEASE_INFO,
     },
 }
 
@@ -83,6 +81,7 @@ def make_app():
     app.add_url_rule("/guava", "guava_index", noop)
     app.add_url_rule("/guava/predict", "guava_predict", noop, methods=["POST"])
     app.context_processor(lambda: {"current_year": datetime.now().year})
+    i18n.register(app)  # /bn/ routes + t(), lurl(), lang_urls ...
     return app
 
 
@@ -136,30 +135,35 @@ def main():
             os.makedirs(os.path.join(OUT, "models"), exist_ok=True)
             shutil.copy2(model_file, os.path.join(OUT, "models", f"{crop}.fp16.onnx"))
 
-        config = {
-            "crop": crop,
-            "crop_label": c["label"],
-            "preprocess": crop,
-            "classes": list(c["classes"]),
-            "info": {name: c["info"].get(name, {}) for name in c["classes"]},
-            "model_url": f"{args.model_base}{crop}.fp16.onnx?v={file_hash(model_file)}",
-            "model_size_mb": round(os.path.getsize(model_file) / 1e6),
-            "inference_module": inference_module,
-        }
-        with app.test_request_context(c["endpoint_path"]):
-            html = render_template(
-                c["template"],
-                static_build=True,
-                crop_config=config,
-                # Placeholders for the result view; filled in by app.js
-                predicted_class="", confidence=0, description="", instructions=[],
-                is_healthy=False, ranked=[("", 0)], image_url="",
-            )
-        dest = os.path.join(OUT, c["out"])
-        os.makedirs(os.path.dirname(dest), exist_ok=True)
-        with open(dest, "w", encoding="utf-8", newline="\n") as f:
-            f.write(html)
-        print(f"  wrote {os.path.relpath(dest, ROOT)}")
+        for lang in i18n.LANGS:
+            t = i18n.translator(lang)
+            config = {
+                "crop": crop,
+                "lang": lang,
+                "crop_label": t(f"crop.{c['label']}"),
+                "preprocess": crop,
+                "classes": list(c["classes"]),
+                "info": i18n.localized_info(crop, lang, c["classes"]),
+                "model_url": f"{args.model_base}{crop}.fp16.onnx?v={file_hash(model_file)}",
+                "model_size_mb": round(os.path.getsize(model_file) / 1e6),
+                "inference_module": inference_module,
+            }
+            page_path = i18n.lang_path(c["endpoint_path"], lang)
+            with app.test_request_context(page_path):
+                html = render_template(
+                    c["template"],
+                    static_build=True,
+                    crop_config=config,
+                    # Placeholders for the result view; filled in by app.js
+                    display_name="", confidence=0, description="", instructions=[],
+                    is_healthy=False, ranked=[("", 0)], image_url="",
+                )
+            out_rel = c["out"] if lang == "en" else os.path.join(lang, c["out"])
+            dest = os.path.join(OUT, out_rel)
+            os.makedirs(os.path.dirname(dest), exist_ok=True)
+            with open(dest, "w", encoding="utf-8", newline="\n") as f:
+                f.write(html)
+            print(f"  wrote {os.path.relpath(dest, ROOT)}")
 
     shutil.copy2(os.path.join(ROOT, "vercel.json"), os.path.join(OUT, "vercel.json"))
     # Never upload local env/token files the Vercel CLI may create here

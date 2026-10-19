@@ -1,3 +1,23 @@
+// Interface text for the page language (embedded by base.html from i18n.py)
+const LANG = document.documentElement.lang || 'en';
+const I18N = (() => {
+  try { return JSON.parse(document.getElementById('i18n').textContent); } catch { return {}; }
+})();
+function tr(key, vars = {}) {
+  let text = I18N[key] || key;
+  for (const [name, value] of Object.entries(vars)) text = text.split(`{${name}}`).join(value);
+  return text;
+}
+// Bangla pages show Bangla digits
+const digits = (value) => (LANG === 'bn' ? String(value).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]) : String(value));
+
+// Remember the language the visitor picked (base.html uses it on their next visit)
+document.querySelectorAll('.lang-switch [data-lang]').forEach((link) => {
+  link.addEventListener('click', () => {
+    try { localStorage.setItem('plantsense-lang', link.dataset.lang); } catch { /* storage blocked */ }
+  });
+});
+
 // Navbar border once the page scrolls
 const navbar = document.getElementById('navbar');
 if (navbar) {
@@ -16,7 +36,7 @@ if (navToggle && navMenu) {
     navMenu.classList.toggle('open', open);
     navToggle.classList.toggle('open', open);
     navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    navToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    navToggle.setAttribute('aria-label', open ? tr('nav.close_menu') : tr('nav.open_menu'));
   };
   navToggle.addEventListener('click', () => setNavOpen(!navMenu.classList.contains('open')));
   // Close the mobile menu after following an in-page link
@@ -54,10 +74,8 @@ if (cropDropdownToggle && cropDropdownMenu) {
 
   cropDropdownMenu.querySelectorAll('.dropdown-item.disabled').forEach((item) => {
     item.addEventListener('click', () => {
-      const cropName = item.dataset.crop
-        ? item.dataset.crop.charAt(0).toUpperCase() + item.dataset.crop.slice(1)
-        : 'This crop';
-      showToast(`${cropName} leaf disease detection is coming soon.`);
+      const crop = item.dataset.crop || 'tomato';
+      showToast(tr('js.coming_soon', { crop: tr(`crop.${crop.charAt(0).toUpperCase()}${crop.slice(1)}`) }));
       setDropdownOpen(false);
     });
   });
@@ -108,7 +126,7 @@ if (form && input && dropzone) {
   // Server uploads are capped by MAX_CONTENT_LENGTH in app.py; in-browser analysis uploads nothing.
   const maxMb = Number(form.dataset.maxMb) || 8;
   const formatSize = (bytes) =>
-    bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+    digits(bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`);
 
   // HEIC/TIFF converters live in a separate module, loaded on first use
   let formatsModule = null;
@@ -121,7 +139,7 @@ if (form && input && dropzone) {
 
   const setLoading = (loading, label) => {
     submitBtn.classList.toggle('is-loading', loading);
-    submitBtn.querySelector('.btn__label').textContent = label || 'Analyze leaf';
+    submitBtn.querySelector('.btn__label').textContent = label || tr('upload.analyze');
   };
 
   let selected = null; // the photo to analyze (converted to PNG if needed)
@@ -154,19 +172,19 @@ if (form && input && dropzone) {
     setError('');
     if (!file) { clearPreview(); return; }
     if (file.size > maxMb * 1024 * 1024) {
-      setError(`That file is ${formatSize(file.size)}. The limit is ${maxMb} MB.`);
+      setError(tr('js.too_big', { size: formatSize(file.size), max: digits(maxMb) }));
       input.value = '';
       clearPreview();
       return;
     }
     const label = `${file.name} · ${formatSize(file.size)}`;
-    showPreview(null, `${label} · preparing…`);
+    showPreview(null, `${label} · ${tr('js.preparing')}`);
     pending = formats().then((m) => m.normalizeImage(file, { forServer: !browser }));
     try {
       const ready = await pending;
       if (mine !== token) return;
       if (!browser && ready.size > maxMb * 1024 * 1024) {
-        throw new Error(`After conversion this photo is ${formatSize(ready.size)}, over the ${maxMb} MB limit. Try a smaller photo or a JPG.`);
+        throw new Error(tr('js.too_big_converted', { size: formatSize(ready.size), max: digits(maxMb) }));
       }
       selected = ready;
       showPreview(ready, label);
@@ -178,7 +196,8 @@ if (form && input && dropzone) {
       }
     } catch (err) {
       if (mine !== token) return;
-      setError(err.message || 'This image could not be read.');
+      // image-formats.js errors carry a message key
+      setError(err.key ? tr(err.key) : tr('js.unreadable'));
       input.value = '';
       clearPreview();
     } finally {
@@ -231,19 +250,19 @@ if (form && input && dropzone) {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (pending) {
-      setLoading(true, 'Preparing photo…');
+      setLoading(true, tr('js.preparing_photo'));
       try { await pending; } catch { /* error already shown */ }
       setLoading(false);
     }
     if (!selected) {
-      if (!uploadError.textContent) setError('Please choose a leaf photo first.');
+      if (!uploadError.textContent) setError(tr('js.choose_photo'));
       return;
     }
     if (browser) {
       browser.analyze(selected);
       return;
     }
-    setLoading(true, 'Analyzing…');
+    setLoading(true, tr('js.analyzing'));
     form.submit();
   });
 
@@ -270,7 +289,7 @@ function setupBrowserInference(config, { setError, setLoading, resetUpload }) {
     statusText.textContent = text;
     const known = typeof fraction === 'number';
     status.classList.toggle('is-indeterminate', !known);
-    statusPct.textContent = known ? `${Math.round(fraction * 100)}%` : '';
+    statusPct.textContent = known ? `${digits(Math.round(fraction * 100))}%` : '';
     statusFill.style.width = known ? `${fraction * 100}%` : '';
   };
   const hideStatus = () => { status.hidden = true; };
@@ -278,7 +297,7 @@ function setupBrowserInference(config, { setError, setLoading, resetUpload }) {
   const onDownload = (fraction) => {
     downloaded = fraction;
     if (waiting && fraction < 1) {
-      showStatus(`Downloading the AI model (one time, ${config.model_size_mb} MB)…`, fraction);
+      showStatus(tr('js.downloading', { mb: digits(config.model_size_mb) }), fraction);
     }
   };
 
@@ -302,7 +321,8 @@ function setupBrowserInference(config, { setError, setLoading, resetUpload }) {
   }
 
   const round2 = (n) => Math.round(n * 100) / 100;
-  const pretty = (name) => name.replace(/_/g, ' ');
+  // Class names in the page language (from i18n.localized_info)
+  const pretty = (name) => (config.info[name] && config.info[name].name) || name.replace(/_/g, ' ');
 
   const render = (result, file) => {
     const info = config.info[result.className] || {};
@@ -316,20 +336,20 @@ function setupBrowserInference(config, { setError, setLoading, resetUpload }) {
 
     $('result-verdict').className = `card verdict verdict--${tone}`;
     $('result-status').className = `status status--${tone}`;
-    $('result-status-text').textContent = healthy ? 'Healthy leaf' : 'Disease detected';
+    $('result-status-text').textContent = healthy ? tr('result.healthy') : tr('result.disease');
     $('result-title').textContent = pretty(result.className);
     $('result-desc').textContent = info.description || '';
     $('result-desc').hidden = !info.description;
 
     const gauge = $('result-gauge');
     gauge.style.setProperty('--p', confidence);
-    gauge.setAttribute('aria-label', `Confidence ${confidence} percent`);
-    $('result-gauge-value').textContent = Math.round(confidence);
+    gauge.setAttribute('aria-label', tr('result.confidence_aria', { value: digits(confidence) }));
+    $('result-gauge-value').textContent = digits(Math.round(confidence));
     $('result-lowconf').hidden = confidence >= 60;
 
     const steps = info.instructions || [];
     $('result-actions-card').hidden = !steps.length;
-    $('result-actions-title').textContent = healthy ? 'Care recommendations' : 'Recommended actions';
+    $('result-actions-title').textContent = healthy ? tr('result.care') : tr('result.actions');
     $('result-actions-list').replaceChildren(...steps.map((step) => {
       const li = document.createElement('li');
       li.textContent = step;
@@ -342,12 +362,12 @@ function setupBrowserInference(config, { setError, setLoading, resetUpload }) {
       const li = template.cloneNode(true);
       li.className = i === 0 ? 'prob prob--top' : 'prob';
       li.querySelector('.prob__row span').textContent = pretty(name);
-      li.querySelector('.prob__row strong').textContent = `${round2(prob)}%`;
+      li.querySelector('.prob__row strong').textContent = `${digits(round2(prob))}%`;
       li.querySelector('.prob__fill').style.width = `${round2(prob)}%`;
       return li;
     }));
 
-    document.title = `${pretty(result.className)} — ${config.crop_label} Diagnosis · PlantSense AI`;
+    document.title = tr('title.result', { label: pretty(result.className), Crop: config.crop_label });
   };
 
   const pageTitle = document.title;
@@ -380,14 +400,14 @@ function setupBrowserInference(config, { setError, setLoading, resetUpload }) {
 
   const analyze = async (file) => {
     setError('');
-    setLoading(true, 'Analyzing…');
+    setLoading(true, tr('js.analyzing'));
     waiting = true;
     if (downloaded < 1) onDownload(downloaded);
     try {
       const predictor = await getPredictor();
       const result = await predictor.predict(file, {
         onDownload,
-        onStage: () => showStatus('Analyzing the leaf…'),
+        onStage: () => showStatus(tr('js.analyzing_leaf')),
       });
       render(result, file);
       history.pushState({ view: 'result' }, '', '#result');
@@ -396,8 +416,8 @@ function setupBrowserInference(config, { setError, setLoading, resetUpload }) {
       console.error(err);
       setError(
         navigator.onLine === false
-          ? 'You appear to be offline. Connect to the internet once so the AI model can download.'
-          : 'Something went wrong while analyzing the image. Please try again or use a different photo.'
+          ? tr('js.offline')
+          : tr('js.failed')
       );
     } finally {
       waiting = false;

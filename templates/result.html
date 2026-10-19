@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "_macros.html" import result_view with context %}
-{% block title %}{{ predicted_class }} — Papaya Diagnosis · PlantSense AI{% endblock %}
+{% block title %}{{ t('title.result', label=display_name, crop='papaya') }}{% endblock %}
 
 {% block content %}
-{{ result_view(url_for('index'), 'papaya') }}
+{{ result_view(lurl('index'), 'papaya') }}
 {% endblock %}

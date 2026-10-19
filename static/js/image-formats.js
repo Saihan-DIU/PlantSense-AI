@@ -13,7 +13,6 @@ const LIBS = {
 
 export const EXTENSIONS = ['jpg', 'jpeg', 'jfif', 'png', 'webp', 'gif', 'bmp', 'avif', 'heic', 'heif', 'tif', 'tiff'];
 export const ACCEPT = 'image/*,.heic,.heif,.tif,.tiff,.avif';
-export const LABEL = 'JPG, PNG, WEBP, HEIC, AVIF, GIF, BMP or TIFF';
 
 const extOf = (name) => (name.split('.').pop() || '').toLowerCase();
 
@@ -24,6 +23,13 @@ export function kindOf(file) {
   if (type === 'image/tiff' || ext === 'tif' || ext === 'tiff') return 'tiff';
   if (type.startsWith('image/') || EXTENSIONS.includes(ext)) return 'native';
   return null;
+}
+
+// Errors carry a message key from i18n.py (shown by app.js in the page language)
+function fail(key) {
+  const err = new Error(key);
+  err.key = key;
+  return err;
 }
 
 const scripts = {};
@@ -86,7 +92,7 @@ async function canvasToPng(file) {
 // Throws an Error with a user-facing message if the image can't be read.
 export async function normalizeImage(file, { forServer = false } = {}) {
   const kind = kindOf(file);
-  if (!kind) throw new Error(`Unsupported file type. Please choose a ${LABEL} image.`);
+  if (!kind) throw fail('js.unsupported');
 
   let out = file;
   try {
@@ -94,11 +100,7 @@ export async function normalizeImage(file, { forServer = false } = {}) {
     else if (kind === 'tiff') out = await tiffToPng(file);
   } catch (err) {
     console.error(err);
-    throw new Error(
-      navigator.onLine === false
-        ? 'Converting this photo needs an internet connection the first time. Please try again online.'
-        : 'This photo could not be converted. Try exporting it as JPG or PNG.'
-    );
+    throw fail(navigator.onLine === false ? 'js.convert_offline' : 'js.convert_failed');
   }
 
   // Make sure the browser can actually decode it (e.g. AVIF on old browsers, corrupt files).
@@ -106,7 +108,7 @@ export async function normalizeImage(file, { forServer = false } = {}) {
     const bitmap = await createImageBitmap(out);
     bitmap.close?.();
   } catch {
-    throw new Error('This image could not be read. Try a JPG or PNG photo instead.');
+    throw fail('js.unreadable');
   }
   if (forServer && out === file && !SERVER_EXTENSIONS.includes(extOf(file.name))) {
     out = await canvasToPng(file);

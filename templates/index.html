@@ -1,79 +1,73 @@
 {% extends "base.html" %}
 {% from "_macros.html" import icon, upload_card, how_it_works, result_view with context %}
-{% block title %}Papaya Leaf Disease Detection — PlantSense AI{% endblock %}
+{% block title %}{{ t('title.home', crop='papaya') }}{% endblock %}
 
 {% block content %}
 <div id="landing">
 <section class="hero">
   <div class="container hero__inner">
     <div class="hero__copy">
-      <span class="eyebrow eyebrow--pill">{{ icon('cpu', 14) }} AI plant health assistant</span>
-      <h1 class="hero__title">Detect papaya leaf diseases <span class="text-accent">in seconds.</span></h1>
-      <p class="hero__lead">
-        Upload a clear photo of a papaya leaf and get an instant AI diagnosis with
-        step-by-step treatment guidance &mdash; built for farmers, free to use.
-      </p>
+      <span class="eyebrow eyebrow--pill">{{ icon('cpu', 14) }} {{ t('hero.eyebrow') }}</span>
+      <h1 class="hero__title">{{ t('hero.title.html', crop='papaya') }}</h1>
+      <p class="hero__lead">{{ t('hero.lead', crop='papaya') }}</p>
 
       <dl class="hero__stats">
-        <div><dt>Conditions</dt><dd>6</dd></div>
-        <div><dt>Analysis time</dt><dd>&lt;&nbsp;5s</dd></div>
-        <div><dt>Cost</dt><dd>Free</dd></div>
+        <div><dt>{{ t('hero.stat.conditions') }}</dt><dd>{{ n(6) }}</dd></div>
+        <div><dt>{{ t('hero.stat.time') }}</dt><dd>{{ t('hero.stat.time_value') }}</dd></div>
+        <div><dt>{{ t('hero.stat.cost') }}</dt><dd>{{ t('hero.stat.free') }}</dd></div>
       </dl>
 
       <ul class="hero__trust">
-        <li>{{ icon('check', 16) }} No signup required</li>
-        <li>{{ icon('check', 16) }} Works on any phone</li>
-        <li>{{ icon('check', 16) }} Treatment steps included</li>
+        <li>{{ icon('check', 16) }} {{ t('hero.trust.signup') }}</li>
+        <li>{{ icon('check', 16) }} {{ t('hero.trust.phone') }}</li>
+        <li>{{ icon('check', 16) }} {{ t('hero.trust.steps') }}</li>
       </ul>
     </div>
 
-    {{ upload_card(url_for('predict'), 'papaya', [
-      ('sun', 'Natural daylight.', 'Avoid heavy shadows.'),
-      ('focus', 'Fill the frame.', 'Center one leaf.'),
-      ('image', 'Keep it sharp.', 'No blur or glare.')
-    ]) }}
+    {{ upload_card(url_for('predict'), 'papaya', [('sun', 'daylight'), ('focus', 'frame'), ('image', 'sharp')]) }}
   </div>
 </section>
 
-{{ how_it_works('papaya', 'A MaxViT vision transformer scans the leaf for visual signs of disease in seconds.') }}
+{{ how_it_works('papaya') }}
 
 <section class="section section--alt" id="features">
   <div class="container">
     <header class="section-head">
-      <span class="eyebrow">Why PlantSense</span>
-      <h2 class="section-title">Built for the field, not the lab</h2>
-      <p class="section-lead">Designed around how farmers actually work: a phone, a leaf, and a decision to make today.</p>
+      <span class="eyebrow">{{ t('feat.eyebrow') }}</span>
+      <h2 class="section-title">{{ t('feat.title') }}</h2>
+      <p class="section-lead">{{ t('feat.lead') }}</p>
     </header>
 
     <div class="bento">
       <article class="bento__card bento__card--feature reveal">
         <span class="feature-icon">{{ icon('zap', 20) }}</span>
-        <h3>Instant results</h3>
-        <p>Get a diagnosis in seconds instead of waiting days for an expert visit &mdash; act before the disease spreads.</p>
-        <ul class="condition-list" aria-label="Detectable conditions">
-          <li>Anthracnose</li><li>Black spot</li><li>Mealybug</li>
-          <li>Mosaic virus</li><li>Ring spot virus</li><li>Healthy</li>
+        <h3>{{ t('feat.instant') }}</h3>
+        <p>{{ t('feat.instant_text') }}</p>
+        <ul class="condition-list" aria-label="{{ t('feat.conditions') }}">
+          {% for key in ['anthracnose', 'black_spot', 'mealybug', 'mosaic', 'ring_spot', 'healthy'] %}
+          <li>{{ t('cond.' ~ key) }}</li>
+          {% endfor %}
         </ul>
       </article>
       <article class="bento__card reveal">
         <span class="feature-icon">{{ icon('target', 20) }}</span>
-        <h3>Trained on real leaves</h3>
-        <p>Recognizes 6 common papaya conditions, including healthy leaves.</p>
+        <h3>{{ t('feat.trained') }}</h3>
+        <p>{{ t('feat.trained_text') }}</p>
       </article>
       <article class="bento__card reveal">
         <span class="feature-icon">{{ icon('clipboard', 20) }}</span>
-        <h3>Actionable treatment</h3>
-        <p>Every result comes with clear, practical steps you can act on today.</p>
+        <h3>{{ t('feat.treatment') }}</h3>
+        <p>{{ t('feat.treatment_text') }}</p>
       </article>
       <article class="bento__card reveal">
         <span class="feature-icon">{{ icon('phone', 20) }}</span>
-        <h3>Works on any device</h3>
-        <p>Use it from a phone in the field or a computer at home. No app install.</p>
+        <h3>{{ t('feat.device') }}</h3>
+        <p>{{ t('feat.device_text') }}</p>
       </article>
       <article class="bento__card reveal">
         <span class="feature-icon">{{ icon('unlock', 20) }}</span>
-        <h3>Free and open</h3>
-        <p>No signup, no subscription. Upload a photo and get help.</p>
+        <h3>{{ t('feat.free') }}</h3>
+        <p>{{ t('feat.free_text') }}</p>
       </article>
     </div>
   </div>
@@ -82,42 +76,34 @@
 <section class="section" id="about">
   <div class="container about">
     <div class="about__copy reveal">
-      <span class="eyebrow">About us</span>
-      <h2 class="section-title">Research-driven, farmer-focused</h2>
-      <p>
-        We are a team of Computer Science &amp; Engineering students from Dhaka International
-        University working on Artificial Intelligence, Machine Learning, Computer Vision,
-        and Smart Agriculture.
-      </p>
-      <p>
-        We built this platform to explore how modern AI can be applied to real agricultural
-        problems. Our goal is to make plant disease detection simple, accessible, and easy
-        to understand.
-      </p>
+      <span class="eyebrow">{{ t('about.eyebrow') }}</span>
+      <h2 class="section-title">{{ t('about.title') }}</h2>
+      <p>{{ t('about.p1') }}</p>
+      <p>{{ t('about.p2') }}</p>
       <ul class="tags">
-        <li>Artificial Intelligence</li>
-        <li>Machine Learning</li>
-        <li>Computer Vision</li>
-        <li>Smart Agriculture</li>
+        <li>{{ t('tag.ai') }}</li>
+        <li>{{ t('tag.ml') }}</li>
+        <li>{{ t('tag.cv') }}</li>
+        <li>{{ t('tag.agri') }}</li>
       </ul>
     </div>
 
     <div class="team">
-      <a class="team-card team-card--link reveal" href="https://www.linkedin.com/in/md-saihan-alam" target="_blank" rel="noopener noreferrer" aria-label="Md Saihan Alam on LinkedIn (opens in a new tab)">
-        <img src="{{ url_for('static', filename='images/team/saihan.png') }}" alt="Portrait of Md Saihan Alam" class="team-card__photo" loading="lazy" />
+      <a class="team-card team-card--link reveal" href="https://www.linkedin.com/in/md-saihan-alam" target="_blank" rel="noopener noreferrer" aria-label="{{ t('team.linkedin_aria', name='Md Saihan Alam') }}">
+        <img src="{{ url_for('static', filename='images/team/saihan.png') }}" alt="{{ t('team.photo_alt', name='Md Saihan Alam') }}" class="team-card__photo" loading="lazy" />
         <div class="team-card__info">
           <h3>Md Saihan Alam</h3>
-          <p class="team-card__role">Researcher &amp; Developer</p>
-          <p class="team-card__org">Dept. of CSE, Dhaka International University</p>
+          <p class="team-card__role">{{ t('team.role') }}</p>
+          <p class="team-card__org">{{ t('team.org') }}</p>
         </div>
         <span class="team-card__social">{{ icon('linkedin', 16) }}<span>LinkedIn</span></span>
       </a>
       <article class="team-card reveal">
-        <img src="{{ url_for('static', filename='images/team/zuba.jpg') }}" alt="Portrait of Zuba" class="team-card__photo" loading="lazy" />
+        <img src="{{ url_for('static', filename='images/team/zuba.jpg') }}" alt="{{ t('team.photo_alt', name='Zuba') }}" class="team-card__photo" loading="lazy" />
         <div>
           <h3>Zuba</h3>
-          <p class="team-card__role">Researcher &amp; Developer</p>
-          <p class="team-card__org">Dept. of CSE, Dhaka International University</p>
+          <p class="team-card__role">{{ t('team.role') }}</p>
+          <p class="team-card__org">{{ t('team.org') }}</p>
         </div>
       </article>
     </div>
@@ -127,17 +113,17 @@
 <section class="cta-band">
   <div class="container cta-band__inner">
     <div>
-      <h2>Have a sick-looking leaf?</h2>
-      <p>Get a diagnosis and treatment plan in under a minute.</p>
+      <h2>{{ t('cta.title') }}</h2>
+      <p>{{ t('cta.text') }}</p>
     </div>
-    <a href="#upload" class="btn btn--light btn--lg">Diagnose a leaf {{ icon('arrow-right', 18) }}</a>
+    <a href="#upload" class="btn btn--light btn--lg">{{ t('nav.cta') }} {{ icon('arrow-right', 18) }}</a>
   </div>
 </section>
 </div>
 
 {% if static_build %}
 <div id="result-view" hidden>
-  {{ result_view(url_for('index'), 'papaya') }}
+  {{ result_view(lurl('index'), 'papaya') }}
 </div>
 <script type="application/json" id="crop-config">{{ crop_config|tojson }}</script>
 {% endif %}

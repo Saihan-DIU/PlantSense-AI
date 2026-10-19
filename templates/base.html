@@ -1,65 +1,89 @@
 {% from "_macros.html" import icon with context %}
-{% set is_guava = request.endpoint in ['guava_index', 'guava_predict'] %}
-{% set home_url = url_for('guava_index') if is_guava else url_for('index') %}
+{% set is_guava = request.endpoint in ['guava_index', 'guava_index_bn', 'guava_predict'] %}
+{% set home_url = lurl('guava_index') if is_guava else lurl('index') %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang }}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="PlantSense AI detects plant leaf diseases from a single photo and gives practical treatment steps." />
+  <meta name="description" content="{{ t('meta.description') }}" />
   <meta name="color-scheme" content="light dark" />
   <meta name="theme-color" content="#f7f6f2" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#0d1411" media="(prefers-color-scheme: dark)" />
   <title>{% block title %}PlantSense AI{% endblock %}</title>
+  {% if is_home_page %}
+  <link rel="alternate" hreflang="en" href="{{ lang_urls.en }}" />
+  <link rel="alternate" hreflang="bn" href="{{ lang_urls.bn }}" />
+  <script>
+    // Send returning visitors to the language they picked last time (or Bangla
+    // for Bangla browsers), but only when they arrive from outside the site.
+    (function () {
+      try {
+        var current = '{{ lang }}', urls = {{ lang_urls|tojson }};
+        var pref = localStorage.getItem('plantsense-lang');
+        if (!pref && /^bn\b/i.test(navigator.language || '')) pref = 'bn';
+        var fromSite = document.referrer && new URL(document.referrer).origin === location.origin;
+        if (pref && pref !== current && urls[pref] && !fromSite) location.replace(urls[pref] + location.hash);
+      } catch (e) {}
+    })();
+  </script>
+  {% endif %}
   <link rel="icon" href="{{ url_for('static', filename='images/logo.svg') }}" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600{% if lang == 'bn' %}&family=Hind+Siliguri:wght@400;500;600;700{% endif %}&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
   <script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
-  <a class="skip-link" href="#main">Skip to content</a>
+  <a class="skip-link" href="#main">{{ t('skip') }}</a>
 
   <header class="navbar" id="navbar">
     <div class="container nav-container">
-      <a class="brand" href="{{ url_for('index') }}">
+      <a class="brand" href="{{ lurl('index') }}">
         <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="" class="brand__logo" width="32" height="32" />
         <span class="brand__name">PlantSense<span class="brand__ai">AI</span></span>
       </a>
 
-      <nav class="nav-menu" id="navMenu" aria-label="Primary">
-        <a href="{{ home_url }}#how-it-works">How it works</a>
-        <a href="{{ url_for('index') }}#features">Features</a>
-        <a href="{{ url_for('index') }}#about">About</a>
+      <nav class="nav-menu" id="navMenu" aria-label="{{ t('nav.primary') }}">
+        <a href="{{ home_url }}#how-it-works">{{ t('nav.how') }}</a>
+        <a href="{{ lurl('index') }}#features">{{ t('nav.features') }}</a>
+        <a href="{{ lurl('index') }}#about">{{ t('nav.about') }}</a>
 
         <div class="nav-dropdown" id="cropDropdown">
           <button class="crop-switch" id="cropDropdownToggle" aria-haspopup="true" aria-expanded="false" aria-controls="cropDropdownMenu">
             {{ icon('leaf', 16) }}
-            <span>{{ 'Guava' if is_guava else 'Papaya' }}</span>
+            <span>{{ t('crop.Guava') if is_guava else t('crop.Papaya') }}</span>
             {{ icon('chevron-down', 16, 'crop-switch__caret') }}
           </button>
           <div class="dropdown-menu" id="cropDropdownMenu" role="menu">
-            <p class="dropdown-label">Select crop</p>
-            <a href="{{ url_for('index') }}" role="menuitem" class="dropdown-item {{ '' if is_guava else 'active' }}">
-              <span class="dropdown-item__text"><strong>Papaya</strong><small>6 leaf conditions</small></span>
-              <span class="status-badge status-live">Live</span>
+            <p class="dropdown-label">{{ t('nav.select_crop') }}</p>
+            <a href="{{ lurl('index') }}" role="menuitem" class="dropdown-item {{ '' if is_guava else 'active' }}">
+              <span class="dropdown-item__text"><strong>{{ t('crop.Papaya') }}</strong><small>{{ t('nav.conditions') }}</small></span>
+              <span class="status-badge status-live">{{ t('nav.live') }}</span>
             </a>
-            <a href="{{ url_for('guava_index') }}" role="menuitem" class="dropdown-item {{ 'active' if is_guava else '' }}">
-              <span class="dropdown-item__text"><strong>Guava</strong><small>6 leaf conditions</small></span>
-              <span class="status-badge status-live">Live</span>
+            <a href="{{ lurl('guava_index') }}" role="menuitem" class="dropdown-item {{ 'active' if is_guava else '' }}">
+              <span class="dropdown-item__text"><strong>{{ t('crop.Guava') }}</strong><small>{{ t('nav.conditions') }}</small></span>
+              <span class="status-badge status-live">{{ t('nav.live') }}</span>
             </a>
             <button type="button" role="menuitem" class="dropdown-item disabled" data-crop="tomato">
-              <span class="dropdown-item__text"><strong>Tomato</strong><small>In development</small></span>
-              <span class="status-badge status-soon">Soon</span>
+              <span class="dropdown-item__text"><strong>{{ t('crop.Tomato') }}</strong><small>{{ t('nav.in_development') }}</small></span>
+              <span class="status-badge status-soon">{{ t('nav.soon') }}</span>
             </button>
           </div>
         </div>
 
-        <a href="{{ home_url }}#upload" class="btn btn--primary btn--sm nav-cta">Diagnose a leaf</a>
+        <div class="lang-switch" role="group" aria-label="{{ t('lang.label') }}">
+          <a href="{{ lang_urls.en }}" hreflang="en" lang="en" data-lang="en"
+             class="lang-switch__opt{{ ' is-active' if lang == 'en' }}"{{ ' aria-current=true' if lang == 'en' }}>EN</a>
+          <a href="{{ lang_urls.bn }}" hreflang="bn" lang="bn" data-lang="bn"
+             class="lang-switch__opt{{ ' is-active' if lang == 'bn' }}"{{ ' aria-current=true' if lang == 'bn' }}>বাংলা</a>
+        </div>
+
+        <a href="{{ home_url }}#upload" class="btn btn--primary btn--sm nav-cta">{{ t('nav.cta') }}</a>
       </nav>
 
-      <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navMenu">
+      <button class="nav-toggle" id="navToggle" aria-label="{{ t('nav.open_menu') }}" aria-expanded="false" aria-controls="navMenu">
         <span class="nav-toggle__open">{{ icon('menu', 22) }}</span>
         <span class="nav-toggle__close">{{ icon('close', 22) }}</span>
       </button>
@@ -88,45 +112,43 @@
   <footer class="site-footer">
     <div class="container footer-grid">
       <div class="footer-about">
-        <a class="brand brand--footer" href="{{ url_for('index') }}">
+        <a class="brand brand--footer" href="{{ lurl('index') }}">
           <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="" class="brand__logo" width="28" height="28" />
           <span class="brand__name">PlantSense<span class="brand__ai">AI</span></span>
         </a>
-        <p>
-          AI-powered plant leaf disease detection, developed as an academic research project
-          applying computer vision to real-world smart agriculture.
-        </p>
+        <p>{{ t('footer.about') }}</p>
       </div>
 
       <div class="footer-col">
-        <h4>Product</h4>
-        <a href="{{ url_for('index') }}">Papaya diagnosis</a>
-        <a href="{{ url_for('guava_index') }}">Guava diagnosis</a>
+        <h4>{{ t('footer.product') }}</h4>
+        <a href="{{ lurl('index') }}">{{ t('footer.papaya') }}</a>
+        <a href="{{ lurl('guava_index') }}">{{ t('footer.guava') }}</a>
         <a href="https://nanosense.vercel.app" target="_blank" rel="noopener noreferrer" class="footer-external">
           NanoSense {{ icon('arrow-right', 14, 'footer-external__icon') }}
         </a>
-        <a href="{{ home_url }}#how-it-works">How it works</a>
-        <a href="{{ url_for('index') }}#features">Features</a>
+        <a href="{{ home_url }}#how-it-works">{{ t('nav.how') }}</a>
+        <a href="{{ lurl('index') }}#features">{{ t('nav.features') }}</a>
       </div>
 
       <div class="footer-col">
-        <h4>Institution</h4>
-        <p>Department of Computer Science &amp; Engineering</p>
-        <p>Dhaka International University</p>
+        <h4>{{ t('footer.institution') }}</h4>
+        <p>{{ t('footer.dept') }}</p>
+        <p>{{ t('footer.university') }}</p>
       </div>
 
       <div class="footer-col">
-        <h4>Disclaimer</h4>
-        <p>Always consult a qualified local agricultural expert to confirm a diagnosis before large-scale treatment.</p>
+        <h4>{{ t('footer.disclaimer') }}</h4>
+        <p>{{ t('footer.disclaimer_text') }}</p>
       </div>
     </div>
 
     <div class="container footer-bottom">
-      <p>&copy; {{ current_year }} PlantSense AI &middot; Dhaka International University</p>
-      <p>Built for academic research in AI-driven smart agriculture.</p>
+      <p>{{ t('footer.copyright', year=n(current_year)) }}</p>
+      <p>{{ t('footer.tagline') }}</p>
     </div>
   </footer>
 
+  <script type="application/json" id="i18n">{{ js_i18n|tojson }}</script>
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
